@@ -5,6 +5,9 @@ import { UserSignup } from 'src/entities/signUp.details';
 import { Repository } from 'typeorm';
 import * as bycrpt from 'bcrypt'
 import { Role } from 'src/enum/role';
+import { ProfileDto } from 'src/dto/profile.dto';
+import { LoginDto } from 'src/dto/login.dto';
+import { verify } from 'crypto';
 
 @Injectable()
 export class UserService {
@@ -63,5 +66,21 @@ export class UserService {
         }
     }
 
-    
+    async login(payload: LoginDto) {
+      const { email, password } = payload
+      
+      const user = await this.userRepo.findOne({ where: { email } });
+
+      if (!user) {
+        throw new HttpException(`Invalid Credentials`, HttpStatus.BAD_REQUEST)
+      }
+
+      const userPassword = await bycrpt.compare(password, user.password)
+
+      if (!userPassword) {
+        throw new HttpException(`Invalid Credentials`, HttpStatus.BAD_REQUEST);
+      }
+
+      
+    }
 }
