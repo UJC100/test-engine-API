@@ -8,10 +8,15 @@ import { Role } from 'src/enum/role';
 import { ProfileDto } from 'src/dto/profile.dto';
 import { LoginDto } from 'src/dto/login.dto';
 import { verify } from 'crypto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectRepository(UserSignup) private readonly userRepo: Repository<UserSignup>) { }
+  constructor(
+    @InjectRepository(UserSignup) private readonly userRepo: Repository<UserSignup>,
+    private readonly jwtService: JwtService
+  ) { }
+
     
     async signup(user: SignupDto) {
         const { password, email, role, secretKey} = user
@@ -66,21 +71,43 @@ export class UserService {
         }
     }
 
-    async login(payload: LoginDto) {
-      const { email, password } = payload
+    async login(userPayload: LoginDto) {
+      const { email, password } = userPayload
       
-      const user = await this.userRepo.findOne({ where: { email } });
+      const user = await this.userRepo.findOne({ where: { email: email } });
+      // console.log(user)
 
       if (!user) {
-        throw new HttpException(`Invalid Credentials`, HttpStatus.BAD_REQUEST)
+        throw new HttpException(`email`, HttpStatus.BAD_REQUEST)
       }
 
       const userPassword = await bycrpt.compare(password, user.password)
 
       if (!userPassword) {
-        throw new HttpException(`Invalid Credentials`, HttpStatus.BAD_REQUEST);
+        throw new HttpException(`password`, HttpStatus.BAD_REQUEST);
       }
 
-      
-    }
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role
+      }
+
+      const jwtToken = await this.jwtService.signAsync(payload)
+
+      return {token: jwtToken }
+  }
+
+  
+      async getAllUsers() {
+        const users = await this.userRepo.find({ relations: ['userProfile'] });
+
+        const allUsers = users.map(user => {
+          return {
+            user               // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
+          }
+        })
+
+        return allUsers
+      }
 }
