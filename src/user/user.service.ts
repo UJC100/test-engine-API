@@ -2,13 +2,20 @@ import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@n
 import { InjectRepository } from '@nestjs/typeorm';
 import { SignupDto } from 'src/dto/signup.dto';
 import { UserSignup } from 'src/entities/signUp.details';
-import { Repository } from 'typeorm';
+import { Repository, UnorderedBulkOperation } from 'typeorm';
 import * as bycrpt from 'bcrypt'
 import { Role } from 'src/enum/role';
 import { ProfileDto } from 'src/dto/profile.dto';
 import { LoginDto } from 'src/dto/login.dto';
 import { verify } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
+import {Response, Request} from 'express'
+
+
+
+
+
+
 
 @Injectable()
 export class UserService {
@@ -71,7 +78,7 @@ export class UserService {
         }
     }
 
-    async login(userPayload: LoginDto) {
+    async login(userPayload: LoginDto, res: Response) {
       const { email, password } = userPayload
       
       const user = await this.userRepo.findOne({ where: { email: email } });
@@ -95,16 +102,34 @@ export class UserService {
 
       const jwtToken = await this.jwtService.signAsync(payload)
 
-      return {token: jwtToken }
+       res.cookie('jwt', jwtToken, {
+        httpOnly: true,
+        maxAge: 120 * 1000
+      })
+
+      return {message: `login success` }
   }
 
   
-      async getAllUsers() {
+  async getAllUsers(req: Request) {
+
+    const cookie = req.cookies['jwt']
+    if (!cookie) {
+      throw new UnauthorizedException()
+    }
+        // console.log(req.cookies)
+        const verify = await this.jwtService.verifyAsync(cookie)
+    
+    if (!verify || verify.role !== 'admin') {
+       throw new UnauthorizedException(`Only admins can access this resource`)
+    } 
+       
+    console.log(verify)
         const users = await this.userRepo.find({ relations: ['userProfile'] });
 
         const allUsers = users.map(user => {
           return {
-            user               // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
+            user : user.toResponseObj()              // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
           }
         })
 

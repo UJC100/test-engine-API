@@ -18,9 +18,16 @@ export class UserSignup extends BaseEntity {
     enum: Role,
     default: Role.student,
   })
-    role: Role;
+  role: Role;
     
   @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails)
   @JoinColumn()
   userProfile: UserProfile;
+
+
+  toResponseObj() {
+    const { password, ...rest } = this
+    
+    return rest
+  }
 }
