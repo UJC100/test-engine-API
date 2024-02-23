@@ -10,6 +10,8 @@ import { LoginDto } from 'src/dto/login.dto';
 import { verify } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import {Response, Request} from 'express'
+import { Console } from 'console';
+import { UpdateLoginDetailsDto } from 'src/dto/update.login.dto';
 
 
 
@@ -134,5 +136,68 @@ export class UserService {
         })
 
         return allUsers
-      }
+  }
+  
+
+  async getOneUser(id: number, req: Request) {
+    // try {
+       const cookie = req.cookies['jwt'];
+
+       if (!cookie) {
+         throw new UnauthorizedException();
+       }
+
+    const verifyJwt = await this.jwtService.verifyAsync(cookie);
+    // console.log(verifyJwt)
+    if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {    // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
+      throw new UnauthorizedException(`Only admins can access this resource`);
+    }
+    
+       const user = await this.userRepo.findOne({
+         where: { id },
+         relations: ['userProfile'],
+       });
+
+       if (!user) {
+         throw new HttpException(`User not Found`, HttpStatus.NOT_FOUND);
+       }
+
+       return user.toResponseObj();
+    // } catch {
+    //   // throw new UnauthorizedException()
+    // }
+   
+
+  }
+
+
+
+  async updateLoginDetails(userPayload: UpdateLoginDetailsDto, req: Request) {
+      const {email, newPassword, password} = userPayload
+    const cookie = req.cookies['jwt']
+    if (!cookie) {
+       throw new UnauthorizedException()
+    }
+    const verify = await this.jwtService.verifyAsync(cookie)
+
+    const user = await this.userRepo.findOne({ where: { id: verify.sub } });
+
+    if (!user) {
+      throw new UnauthorizedException(`no try am`)
+    }
+
+    const checkPassword = bycrpt.compare(password, user.password);
+
+    if (!checkPassword) {
+      throw new UnauthorizedException(`Invalid password`)
+    }
+
+    
+    
+
+    
+    
+
+  
+  }
 }

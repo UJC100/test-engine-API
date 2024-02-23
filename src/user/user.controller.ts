@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SignupDto } from '../dto/signup.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -26,5 +26,10 @@ export class UserController {
   @Get('allUsers')
   async getAllUsers(@Req() req: Request) {
     return await this.userService.getAllUsers(req);
+  }
+
+  @Get('fetchUser/:id')
+  async getOneUser(@Param('id') id: number, @Req() req: Request) {
+    return this.userService.getOneUser(id, req)
   }
 }
