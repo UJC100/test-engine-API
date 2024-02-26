@@ -173,7 +173,7 @@ export class UserService {
 
 
   async updateLoginDetails(userPayload: UpdateLoginDetailsDto, req: Request) {
-      const {email, newPassword, password} = userPayload
+      const { password, ...rest} = userPayload
     const cookie = req.cookies['jwt']
     if (!cookie) {
        throw new UnauthorizedException()
@@ -186,18 +186,23 @@ export class UserService {
       throw new UnauthorizedException(`no try am`)
     }
 
-    const checkPassword = bycrpt.compare(password, user.password);
+    const checkPassword = await bycrpt.compare(password, user.password);
 
     if (!checkPassword) {
       throw new UnauthorizedException(`Invalid password`)
     }
 
-    
-    
+    await this.userRepo.update(user.id, {
+      ...rest
+    })
 
-    
-    
+    const updatedUser = await this.userRepo.findOne({ where: { id: user.id }, relations: ['userProfile'] });
 
-  
+    return updatedUser.toResponseObj()
+
+  }
+
+  async logout() {
+    
   }
 }

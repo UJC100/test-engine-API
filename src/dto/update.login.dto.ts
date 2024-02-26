@@ -10,7 +10,7 @@ export class UpdateLoginDetailsDto {
   @IsNotEmpty()
   newPassword: string;
     
-  @IsOptional()
+//   @IsOptional()
   @IsString()
   @IsNotEmpty()
   password: string;
