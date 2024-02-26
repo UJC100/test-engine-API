@@ -173,7 +173,7 @@ export class UserService {
 
 
   async updateLoginDetails(userPayload: UpdateLoginDetailsDto, req: Request) {
-      const { password, ...rest} = userPayload
+    const { password, ...rest } = userPayload;
     const cookie = req.cookies['jwt']
     if (!cookie) {
        throw new UnauthorizedException()
@@ -202,7 +202,13 @@ export class UserService {
 
   }
 
-  async logout() {
-    
-  }
+  // async logout(res: Response) {
+  //    res.clearCookie('jwt', {
+  //     httpOnly: true
+  //   })
+
+  //   return {
+  //     message : `User logged-out`
+  //   }
+  // }
 }
