@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { JwtSrategy } from '../jwt-auth/jwt.strategy';
+import { GoogleStrategy } from 'src/googleAuth/googleStrategy';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { JwtSrategy } from '../jwt-auth/jwt.strategy';
     TypeOrmModule.forFeature([UserSignup, UserProfile]),
     PassportModule
   ],
-  providers: [UserService, JwtSrategy],
+  providers: [UserService, JwtSrategy, GoogleStrategy],
   controllers: [UserController],
 })
 export class UserModule {}
