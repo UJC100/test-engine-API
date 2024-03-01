@@ -7,11 +7,11 @@ import { Profile, Strategy } from "passport-google-oauth20";
 export class GoogleStrategy extends PassportStrategy(Strategy) {
     constructor() {
         super({
-            clientID: process.env.CLIENT_ID ,
-                clientSecret:process.env.CLIENT_SECRET,
-            callBackURL:'http://127.0.0.1:2021/google/redirect',
-            scope: ['profile', 'email']
-        })
+          clientID: process.env.CLIENT_ID,
+          clientSecret: process.env.CLIENT_SECRET,
+          callbackURL: 'http://127.0.0.1:2021/google/redirect',
+          scope: ['profile', 'email'],
+        });
     }
 
     async validate(accessToken: string, refreshToken: string, profile: Profile) {
