@@ -32,7 +32,7 @@ export class UserService {
   ) {}
 
   async signup(user: SignupDto) {
-    const { password, email, role, secretKey } = user;
+    const { password, email } = user;
 
     const exist = await this.userRepo.findOne({ where: { email } });
 
@@ -41,52 +41,65 @@ export class UserService {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
-    const tutorSecret = process.env.TUTOR_KEY;
-    const AdminSecret = process.env.ADMIN_KEY;
 
-    if (role === 'admin' && AdminSecret === secretKey) {
-      //    user.role = Role.tutor
-      const createdTutor = this.userRepo.create({
-        email,
-        password: hashPassword,
-        role: Role.admin,
-      });
-      const saveAdmin = await this.userRepo.save(createdTutor);
-      delete createdTutor.password;
+    const createUser = this.userRepo.create({
+      password: hashPassword,
+      email
+    })
 
-      return saveAdmin;
-    }
-    if (role === 'tutor' && tutorSecret === secretKey) {
-      const createdTutor = this.userRepo.create({
-        email,
-        password: hashPassword,
-        role: Role.tutor,
-      });
-      const saveAdmin = await this.userRepo.save(createdTutor);
-      delete createdTutor.password;
+    const saveUser = await this.userRepo.save(createUser)
+    delete saveUser.password
 
-      return saveAdmin;
-    }
+    return saveUser
 
-    if (role === 'student') {
-      const createdUser = this.userRepo.create({
-        email,
-        password: hashPassword,
-      });
 
-      const saveUser = await this.userRepo.save(createdUser);
-      delete createdUser.password;
 
-      return saveUser;
-    } else {
-      throw new UnauthorizedException(`Invalid role or key`);
-    }
+    // const tutorSecret = process.env.TUTOR_KEY;
+    // const AdminSecret = process.env.ADMIN_KEY;
+
+    // if (role === 'admin' && AdminSecret === secretKey) {
+    //   //    user.role = Role.tutor
+    //   const createdTutor = this.userRepo.create({
+    //     email,
+    //     password: hashPassword,
+    //     role: Role.admin,
+    //   });
+    //   const saveAdmin = await this.userRepo.save(createdTutor);
+    //   delete createdTutor.password;
+
+    //   return saveAdmin;
+    // }
+    // if (role === 'tutor' && tutorSecret === secretKey) {
+    //   const createdTutor = this.userRepo.create({
+    //     email,
+    //     password: hashPassword,
+    //     role: Role.tutor,
+    //   });
+    //   const saveAdmin = await this.userRepo.save(createdTutor);
+    //   delete createdTutor.password;
+
+    //   return saveAdmin;
+    // }
+
+    // if (role === 'student') {
+    //   const createdUser = this.userRepo.create({
+    //     email,
+    //     password: hashPassword,
+    //   });
+
+      // const saveUser = await this.userRepo.save(createdUser);
+      // delete createdUser.password;
+
+      // return saveUser;
+    // } else {
+    //   throw new UnauthorizedException(`Invalid role or key`);
+    // }
   }
 
   async login(userPayload: LoginDto, res: Response) {
     const { email, password } = userPayload;
 
-    const user = await this.userRepo.findOne({ where: { email: email } });
+    const user = await this.userRepo.findOne({ where: { email: email }, relations: ['userProfile'] });
     // console.log(user)
 
     if (!user) {
@@ -102,7 +115,7 @@ export class UserService {
     const payload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
+      role: user.userProfile.role,
     };
 
     const jwtToken = await this.jwtService.signAsync(payload);
@@ -232,7 +245,7 @@ export class UserService {
     };
 
     const token = await this.jwtService.signAsync(payload, expiration);
-    const link = `http://localhost:2020/api/v1/user/resetPassword/${userId}/${token}`;
+    const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
     try {
       await this.mailerService.sendMail({
         to: `${userInfo.email}`,

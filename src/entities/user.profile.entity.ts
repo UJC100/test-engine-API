@@ -1,20 +1,28 @@
 import { Column, Entity, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
 import { UserSignup } from "./signUp.details";
+import { Role } from "../enum/role";
 
 @Entity()
 export class UserProfile extends BaseEntity {
   @Column()
   fullName: string;
 
-    @Column({
-      unique:true
+  @Column({
+    unique: true,
   })
   userName: string;
 
   @Column()
   course: string;
-    
-  @OneToOne(() => UserSignup, userSignup => userSignup.userProfile)
-  signupDetails: UserSignup
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.student,
+  })
+  role: Role;
+
+  @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile)
+  signupDetails: UserSignup;
 }

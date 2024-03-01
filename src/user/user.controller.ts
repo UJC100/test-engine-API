@@ -5,6 +5,8 @@ import { LoginDto } from '../dto/login.dto';
 import { JwtAuthGuard } from '../jwt-auth/jwt.guard';
 import { Response, Request } from 'express';
 import { UpdateLoginDetailsDto } from 'src/dto/update.login.dto';
+import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
+import { ForgotPasswordDto } from 'src/dto/forgotPassword.dto';
 
 
 
@@ -48,5 +50,17 @@ export class UserController {
     return res.json({
       message: `User logged-out`,
     }).status(HttpStatus.OK);
+  }
+
+   @Post('forgotPassword')
+  async forgotPassword(@Body() payload: ForgotPasswordDto) {
+    return await this.userService.forgotPassword(payload)
+  }
+
+  @Post('resetPassword/:userId/:token')
+  async resetPassword(@Body() payload: ResetPasswordDto, @Param('userId') userId: number, @Param('token') token: string) {
+    console.log(userId, token)
+
+    return await this.userService.resetPassword(payload, userId, token)
   }
 }
