@@ -2,6 +2,7 @@ import { Column, Entity, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
 import { UserSignup } from "./signUp.details";
 import { Role } from "../enum/role";
+import { GoogleUser } from "./google.entity";
 
 @Entity()
 export class UserProfile extends BaseEntity {
@@ -25,4 +26,7 @@ export class UserProfile extends BaseEntity {
 
   @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile)
   signupDetails: UserSignup;
+
+  @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
+  googleUser: GoogleUser
 }

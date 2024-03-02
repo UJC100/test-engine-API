@@ -1,11 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable} from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
+import { Response } from "express";
 import { Profile, Strategy } from "passport-google-oauth20";
+import { UserService } from "src/user/user.service";
 
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
-    constructor() {
+    constructor(private readonly userService: UserService) {
         super({
           clientID: process.env.CLIENT_ID,
           clientSecret: process.env.CLIENT_SECRET,
@@ -18,5 +20,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
         console.log(accessToken)
         console.log(refreshToken);
         console.log(profile);
+
+       const user = await this.userService.googleSignup({
+            profileName: profile.displayName,
+            email: profile.emails[0].value
+       })
+        
+        return user
     }
 }

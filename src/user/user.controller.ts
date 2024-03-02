@@ -7,6 +7,7 @@ import { Response, Request } from 'express';
 import { UpdateLoginDetailsDto } from 'src/dto/update.login.dto';
 import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
 import { ForgotPasswordDto } from 'src/dto/forgotPassword.dto';
+import { GoogleUserDto } from 'src/dto/google.signup.dto';
 
 
 
@@ -24,6 +25,11 @@ export class UserController {
   async signin(@Body() payload: LoginDto, @Res({ passthrough: true }) res: Response) {
     return await this.userService.login(payload, res);
   }
+
+  @Post('googleSignin')
+  async googleSignin(@Body() payload: GoogleUserDto,@Res({ passthrough: true }) res: Response) {
+      return await this.userService.googleSignup(payload, res)
+    }
 
   //   @UseGuards(JwtAuthGuard)
   @Get('allUsers')

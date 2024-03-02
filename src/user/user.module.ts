@@ -10,6 +10,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtSrategy } from '../jwt-auth/jwt.strategy';
 import { GoogleStrategy } from 'src/googleAuth/googleStrategy';
 import { GoogleUserController } from './google.user.controller';
+import { GoogleUser } from 'src/entities/google.entity';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { GoogleUserController } from './google.user.controller';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([UserSignup, UserProfile]),
+    TypeOrmModule.forFeature([UserSignup, UserProfile, GoogleUser]),
     PassportModule
   ],
   providers: [UserService, JwtSrategy, GoogleStrategy],

@@ -15,6 +15,8 @@ import { UpdateLoginDetailsDto } from 'src/dto/update.login.dto';
 import { ForgotPasswordDto } from 'src/dto/forgotPassword.dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
+import { GoogleUserDto } from 'src/dto/google.signup.dto';
+import { GoogleUser } from 'src/entities/google.entity';
 
 
 
@@ -25,8 +27,8 @@ import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(UserSignup)
-    private readonly userRepo: Repository<UserSignup>,
+    @InjectRepository(UserSignup) private readonly userRepo: Repository<UserSignup>,
+    @InjectRepository(GoogleUser) private readonly googleUserRepo: Repository<GoogleUser>,
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService
   ) {}
@@ -112,13 +114,13 @@ export class UserService {
       throw new HttpException(`password`, HttpStatus.BAD_REQUEST);
     }
 
-    const payload = {
+    const details = {
       sub: user.id,
       email: user.email,
       role: user.userProfile.role,
     };
 
-    const jwtToken = await this.jwtService.signAsync(payload);
+    const jwtToken = await this.jwtService.signAsync(details);
 
     res.cookie('jwt', jwtToken, {
       httpOnly: true,
@@ -126,6 +128,31 @@ export class UserService {
     });
 
     return { message: `login success` };
+  }
+
+  async googleSignup(userDetails: GoogleUserDto, res: Response) {
+    
+    const verifyUser = await this.googleUserRepo.findOne({ where: { email: userDetails.email } })
+    if (verifyUser) return verifyUser
+    
+    const createUser = this.googleUserRepo.create(userDetails)
+    const saveUser = await this.googleUserRepo.save(createUser)
+
+    const user = await this.googleUserRepo.findOne({ where: { email: userDetails.email }, relations: ['userProfile']})
+    
+    const payload = {
+      sub: user.id,
+      email: user.email
+    }
+    const token = await this.jwtService.signAsync(payload)
+
+      res.cookie('jwt', token, {
+      httpOnly: true,
+      maxAge: 120 * 1000,
+    });
+    return {
+      message: 'login Success'
+    }
   }
 
   async getAllUsers(req: Request) {
@@ -263,7 +290,7 @@ export class UserService {
   }
 
   async resetPassword(
-    payload: ResetPasswordDto,
+    details: ResetPasswordDto,
     userId: number,
     token: string,
   ) {
@@ -276,7 +303,7 @@ export class UserService {
     // const secret = process.env
     await this.jwtService.verifyAsync(token);
 
-    const { password, confirmPassword } = payload;
+    const { password, confirmPassword } = details;
 
     if (password !== confirmPassword) {
       throw new HttpException(`Passwords don't Match`, HttpStatus.BAD_REQUEST);
