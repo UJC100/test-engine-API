@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import { Controller, Get, Req, Res, UseGuards } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { GoogleAuthGaurd } from "src/googleAuth/google.guard";
+import { Response, Request } from "express";
 
 @Controller('google')
 export class GoogleUserController {
@@ -12,5 +13,11 @@ export class GoogleUserController {
 
   @Get('redirect')
   @UseGuards(GoogleAuthGaurd)
-  googleRedirect() {}
+  googleRedirect() {
+    
+    //   res.cookie('jwt', token, {
+    //   httpOnly: true,
+    //   maxAge: 120 * 1000,
+    // });
+  }
 }

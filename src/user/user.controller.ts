@@ -27,8 +27,8 @@ export class UserController {
   }
 
   @Post('googleSignin')
-  async googleSignin(@Body() payload: GoogleUserDto,@Res({ passthrough: true }) res: Response) {
-      return await this.userService.googleSignup(payload, res)
+  async googleSignin(@Body() payload: GoogleUserDto, @Res({ passthrough: true }) res: Response) {
+      return await this.userService.googleSignup(payload)
     }
 
   //   @UseGuards(JwtAuthGuard)

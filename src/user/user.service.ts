@@ -130,13 +130,13 @@ export class UserService {
     return { message: `login success` };
   }
 
-  async googleSignup(userDetails: GoogleUserDto, res: Response) {
+  async googleSignup(userDetails: GoogleUserDto) {
     
     const verifyUser = await this.googleUserRepo.findOne({ where: { email: userDetails.email } })
     if (verifyUser) return verifyUser
     
     const createUser = this.googleUserRepo.create(userDetails)
-    const saveUser = await this.googleUserRepo.save(createUser)
+     await this.googleUserRepo.save(createUser)
 
     const user = await this.googleUserRepo.findOne({ where: { email: userDetails.email }, relations: ['userProfile']})
     
@@ -146,12 +146,9 @@ export class UserService {
     }
     const token = await this.jwtService.signAsync(payload)
 
-      res.cookie('jwt', token, {
-      httpOnly: true,
-      maxAge: 120 * 1000,
-    });
     return {
-      message: 'login Success'
+      message: 'login Success',
+      token
     }
   }
 
