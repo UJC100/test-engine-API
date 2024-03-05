@@ -38,7 +38,7 @@ export class UserController {
   }
 
   @Get('fetchUser/:id')
-  async getOneUser(@Param('id') id: number, @Req() req: Request) {
+  async getOneUser(@Param('id') id: string, @Req() req: Request) {
     return this.userService.getOneUser(id, req)
   }
 
@@ -64,7 +64,7 @@ export class UserController {
   }
 
   @Post('resetPassword/:userId/:token')
-  async resetPassword(@Body() payload: ResetPasswordDto, @Param('userId') userId: number, @Param('token') token: string) {
+  async resetPassword(@Body() payload: ResetPasswordDto, @Param('userId') userId: string, @Param('token') token: string) {
     console.log(userId, token)
 
     return await this.userService.resetPassword(payload, userId, token)

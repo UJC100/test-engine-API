@@ -28,5 +28,6 @@ export class UserProfile extends BaseEntity {
   signupDetails: UserSignup;
 
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
-  googleUser: GoogleUser
+  googleUser: GoogleUser;
+
 }

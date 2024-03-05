@@ -56,46 +56,6 @@ export class UserService {
 
 
 
-    // const tutorSecret = process.env.TUTOR_KEY;
-    // const AdminSecret = process.env.ADMIN_KEY;
-
-    // if (role === 'admin' && AdminSecret === secretKey) {
-    //   //    user.role = Role.tutor
-    //   const createdTutor = this.userRepo.create({
-    //     email,
-    //     password: hashPassword,
-    //     role: Role.admin,
-    //   });
-    //   const saveAdmin = await this.userRepo.save(createdTutor);
-    //   delete createdTutor.password;
-
-    //   return saveAdmin;
-    // }
-    // if (role === 'tutor' && tutorSecret === secretKey) {
-    //   const createdTutor = this.userRepo.create({
-    //     email,
-    //     password: hashPassword,
-    //     role: Role.tutor,
-    //   });
-    //   const saveAdmin = await this.userRepo.save(createdTutor);
-    //   delete createdTutor.password;
-
-    //   return saveAdmin;
-    // }
-
-    // if (role === 'student') {
-    //   const createdUser = this.userRepo.create({
-    //     email,
-    //     password: hashPassword,
-    //   });
-
-      // const saveUser = await this.userRepo.save(createdUser);
-      // delete createdUser.password;
-
-      // return saveUser;
-    // } else {
-    //   throw new UnauthorizedException(`Invalid role or key`);
-    // }
   }
 
   async login(userPayload: LoginDto, res: Response) {
@@ -117,7 +77,7 @@ export class UserService {
     const details = {
       sub: user.id,
       email: user.email,
-      role: user.userProfile.role,
+      // role: user.userProfile.role,
     };
 
     const jwtToken = await this.jwtService.signAsync(details);
@@ -127,7 +87,10 @@ export class UserService {
       maxAge: 120 * 1000,
     });
 
-    return { message: `login success` };
+    return {
+      message: `login success`,
+      jwtToken
+    };
   }
 
   async googleSignup(userDetails: GoogleUserDto) {
@@ -176,7 +139,7 @@ export class UserService {
     return allUsers;
   }
 
-  async getOneUser(id: number, req: Request) {
+  async getOneUser(id: string, req: Request) {
     // try {
     const cookie = req.cookies['jwt'];
 
@@ -288,7 +251,7 @@ export class UserService {
 
   async resetPassword(
     details: ResetPasswordDto,
-    userId: number,
+    userId: string,
     token: string,
   ) {
     const user = await this.userRepo.findOne({ where: { id: userId } });

@@ -3,6 +3,7 @@ import { DatabaseModule } from './database/database.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { UserProfileModule } from './user-profile/user-profile.module';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
         }
       }
     }),
-    DatabaseModule, UserModule],
+    DatabaseModule, UserModule, UserProfileModule],
   controllers: [],
   providers: [],
 })

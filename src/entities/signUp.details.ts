@@ -23,4 +23,10 @@ export class UserSignup extends BaseEntity {
     
     return rest
   }
+
+  ProfileResponseObj() {
+    const { password, createdAt, updatedAt, ...rest } = this
+    
+    return rest
+  }
 }

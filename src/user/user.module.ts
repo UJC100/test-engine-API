@@ -31,4 +31,6 @@ import { GoogleUser } from 'src/entities/google.entity';
   providers: [UserService, JwtSrategy, GoogleStrategy],
   controllers: [UserController, GoogleUserController],
 })
-export class UserModule {}
+export class UserModule {
+
+}

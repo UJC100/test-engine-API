@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import * as session from 'express-session';
+import * as passport from 'passport'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,6 +12,20 @@ async function bootstrap() {
   });
 
   app.use(cookieParser())
+
+  // app.use(
+  //   session({
+  //     secret: process.env.SESSION_SECRET,
+  //     saveUninitialized: false,
+  //     resave: false,
+  //     cookie: {
+  //       httpOnly: true,
+  //       maxAge: 120 * 1000,
+  //     },
+  //   }),
+  // );
+  // app.use(passport.initialize)
+  // app.use(passport.session())
 
     app.useGlobalPipes(
       new ValidationPipe({

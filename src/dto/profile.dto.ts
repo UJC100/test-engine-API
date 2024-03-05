@@ -12,4 +12,12 @@ export class ProfileDto {
   @IsNotEmpty()
   @IsString()
   course: string;
+
+  @IsNotEmpty()
+  @IsString()
+  role: string;
+
+  @IsNotEmpty()
+  @IsString()
+  secretKey: string;
 }
