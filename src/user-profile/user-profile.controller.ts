@@ -17,7 +17,7 @@ export class UserProfileController {
 
   @Patch('update/:id')
   @UseGuards(JwtAuthGuard)
-  async updateUserProfile(@Body() payload: UpdateProfileDto, @Param('id') userId: string) {
-    return await this.userProfileService.updateUserProfile(payload, userId);
+  async updateUserProfile(@Body() payload: UpdateProfileDto, @Param('id') userId: string, @User('id') jwtId: string) {
+    return await this.userProfileService.updateUserProfile(payload, userId, jwtId);
   }
 }

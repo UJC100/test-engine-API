@@ -69,11 +69,16 @@ export class UserProfileService {
     }
   }
 
-  async updateUserProfile(payload: UpdateProfileDto, userId: string) {
+  async updateUserProfile(payload: UpdateProfileDto, userId: string, jwtId: string) {
+    const verifyUser = await this.userRepo.findOne({ where: { id: jwtId } , relations: ['userProfile']})
     const user = await this.userProfileRepo.findOne({
       where: { id: userId },
       relations: ['signupDetails'],
     });
+    console.log(verifyUser.id, user.signupDetails.id)
+    if (verifyUser.id !== user.signupDetails.id) {
+      throw new UnauthorizedException()
+    }
 
     console.log(user)
     if (!user) {
