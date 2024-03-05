@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileDto } from 'src/dto/profile.dto';
+import { UpdateProfileDto } from 'src/dto/update.profile.dto';
 import { UserSignup } from 'src/entities/signUp.details';
 import { UserProfile } from 'src/entities/user.profile.entity';
 import { Role } from 'src/enum/role';
@@ -8,64 +9,86 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserProfileService {
-    constructor(@InjectRepository(UserProfile) private readonly userProfileRepo: Repository<UserProfile>,
-     @InjectRepository(UserSignup) private readonly userRepo: Repository<UserSignup>) { }
-    
-    async createProfile(payload: ProfileDto, userId: string) {
-      const user = await this.userRepo.findOne({ where: { id: userId } });
+  constructor(
+    @InjectRepository(UserProfile)
+    private readonly userProfileRepo: Repository<UserProfile>,
+    @InjectRepository(UserSignup)
+    private readonly userRepo: Repository<UserSignup>,
+  ) {}
 
-      if (!user) {
-        throw new UnauthorizedException();
-      }
+  async createProfile(payload: ProfileDto, userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
 
-      const tutorSecret = process.env.TUTOR_KEY;
-      const AdminSecret = process.env.ADMIN_KEY;
+    if (!user) {
+      throw new UnauthorizedException();
+    }
 
-      if (payload.role === 'admin' && AdminSecret === payload.secretKey) {
-        //    user.role = Role.tutor
-        const createdAdmin = this.userProfileRepo.create({
-            ...payload,
-            signupDetails: user,
-          role: Role.admin,
-        });
-        const saveAdmin = await this.userProfileRepo.save(createdAdmin);
-        
+    const tutorSecret = process.env.TUTOR_KEY;
+    const AdminSecret = process.env.ADMIN_KEY;
 
-          return {
-            saveAdmin,
-            signupDetails: createdAdmin.signupDetails.ProfileResponseObj(),
-          };
-      }
-      if (payload.role === 'tutor' && tutorSecret === payload.secretKey) {
-        const createdTutor = this.userProfileRepo.create({
-          ...payload,
-          signupDetails: user,
-          role: Role.tutor,
-        });
-        const saveTutor = await this.userProfileRepo.save(createdTutor);
-       
+    if (payload.role === 'admin' && AdminSecret === payload.secretKey) {
+      //    user.role = Role.tutor
+      const createdAdmin = this.userProfileRepo.create({
+        ...payload,
+        signupDetails: user.ProfileResponseObj(),
+        role: Role.admin,
+      });
+      const saveAdmin = await this.userProfileRepo.save(createdAdmin);
 
-          return {
-            saveTutor,
-            signupDetails: createdTutor.signupDetails.ProfileResponseObj(),
-          };
-      }
+      return {
+        saveAdmin,
+      };
+    }
+    if (payload.role === 'tutor' && tutorSecret === payload.secretKey) {
+      const createdTutor = this.userProfileRepo.create({
+        ...payload,
+        signupDetails: user.ProfileResponseObj(),
+        role: Role.tutor,
+      });
+      const saveTutor = await this.userProfileRepo.save(createdTutor);
 
-      if (payload.role === 'student') {
-        const createdUser = this.userProfileRepo.create({
-          ...payload,
-          signupDetails: user,
-          role: Role.student,
-        });
+      return {
+        saveTutor,
+      };
+    }
+
+    if (payload.role === 'student') {
+      const createdUser = this.userProfileRepo.create({
+        ...payload,
+        signupDetails: user.ProfileResponseObj(),
+        role: Role.student,
+      });
 
       const saveUser = await this.userProfileRepo.save(createdUser);
 
-          return {
-            saveUser,
-            signupDetails: createdUser.signupDetails.ProfileResponseObj(),
-          };
-      } else {
-        throw new UnauthorizedException(`Invalid role or key`);
-      }
+      return {
+        saveUser,
+      };
+    } else {
+      throw new UnauthorizedException(`Invalid role or key`);
     }
+  }
+
+  async updateUserProfile(payload: UpdateProfileDto, userId: string) {
+    const user = await this.userProfileRepo.findOne({
+      where: { id: userId },
+      relations: ['signupDetails'],
+    });
+
+    console.log(user)
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    await this.userProfileRepo.update(userId, payload);
+
+    const updatedUser = await this.userProfileRepo.findOne({
+      where: { id: userId },
+      relations: ['signupDetails'],
+    });
+
+    return {
+      ...updatedUser,
+      signupDetails: updatedUser.signupDetails.ProfileResponseObj()
+    };
+  }
 }

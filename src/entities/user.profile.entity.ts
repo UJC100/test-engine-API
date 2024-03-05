@@ -30,4 +30,7 @@ export class UserProfile extends BaseEntity {
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
   googleUser: GoogleUser;
 
+  // UserProfileResponseObj() {
+  //   const {}
+  // }
 }

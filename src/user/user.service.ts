@@ -84,7 +84,7 @@ export class UserService {
 
     res.cookie('jwt', jwtToken, {
       httpOnly: true,
-      maxAge: 120 * 1000,
+      maxAge: 60 * 60 * 1000,
     });
 
     return {
@@ -123,9 +123,9 @@ export class UserService {
     // console.log(req.cookies)
     const verify = await this.jwtService.verifyAsync(cookie);
 
-    if (!verify || verify.role !== 'admin') {
-      throw new UnauthorizedException(`Only admins can access this resource`);
-    }
+    // if (!verify || verify.role !== 'admin') {
+    //   throw new UnauthorizedException(`Only admins can access this resource`);
+    // }
 
     console.log(verify);
     const users = await this.userRepo.find({ relations: ['userProfile'] });
@@ -149,18 +149,23 @@ export class UserService {
 
     const verifyJwt = await this.jwtService.verifyAsync(cookie);
     // console.log(verifyJwt)
-    if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {
-      // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
-      throw new UnauthorizedException(`Only admins can access this resource`);
-    }
+    // if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {
+    //   // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
+    //   throw new UnauthorizedException(`Only admins can access this resource`);
+    // }
+
 
     const user = await this.userRepo.findOne({
       where: { id },
       relations: ['userProfile'],
     });
 
+    const userRole = user.userProfile.role
     if (!user) {
       throw new HttpException(`User not Found`, HttpStatus.NOT_FOUND);
+    }
+    if (userRole !== 'admin') {
+      throw new UnauthorizedException(`Only admins can access this resource`);
     }
 
     return user.toResponseObj();
