@@ -79,8 +79,7 @@ export class UserProfileService {
     if (verifyUser.id !== user.signupDetails.id) {
       throw new UnauthorizedException()
     }
-
-    console.log(user)
+    
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
