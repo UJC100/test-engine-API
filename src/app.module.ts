@@ -4,6 +4,7 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { UserProfileModule } from './user-profile/user-profile.module';
+import { QuizModule } from './quiz/quiz.module';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { UserProfileModule } from './user-profile/user-profile.module';
         }
       }
     }),
-    DatabaseModule, UserModule, UserProfileModule],
+    DatabaseModule, UserModule, UserProfileModule, QuizModule],
   controllers: [],
   providers: [],
 })

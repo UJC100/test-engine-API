@@ -77,7 +77,7 @@ export class UserService {
     const details = {
       sub: user.id,
       email: user.email,
-      // role: user.userProfile.role,
+      role: user.userProfile.role,
     };
 
     const jwtToken = await this.jwtService.signAsync(details);

@@ -1,8 +1,9 @@
-import { Column, Entity, OneToOne } from "typeorm";
+import { Column, Entity, OneToMany, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
 import { UserSignup } from "./signUp.details";
 import { Role } from "../enum/role";
 import { GoogleUser } from "./google.entity";
+import { QuizEntity } from "./quiz.entity";
 
 @Entity()
 export class UserProfile extends BaseEntity {
@@ -30,7 +31,11 @@ export class UserProfile extends BaseEntity {
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
   googleUser: GoogleUser;
 
-  // UserProfileResponseObj() {
-  //   const {}
-  // }
+  @OneToMany(() => QuizEntity, quizEntity => quizEntity.userProfile)
+  quiz: QuizEntity[]
+
+  UserProfileResponseObj() {
+    const { id, createdAt, updatedAt, ...rest } = this
+    return rest
+  }
 }
