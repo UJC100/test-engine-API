@@ -1,0 +1,14 @@
+services: 
+  test-engine:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: test-engine-container
+    ports:
+      - '2021:2021'
+    environment:
+      - PORT=2021
+      - NODE_ENV=development
+    volumes:
+      - ./src:/app/src
+      - ./app/node_modules
