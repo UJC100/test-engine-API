@@ -1,7 +1,14 @@
-import { Body, Controller, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { UserProfileService } from './user-profile.service';
 import { ProfileDto } from 'src/dto/profile.dto';
-import { User } from 'src/utils/user.decorator';
+import { User } from 'src/custome-decorators/user.decorator';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt.guard';
 import { UpdateProfileDto } from 'src/dto/update.profile.dto';
 
@@ -17,7 +24,15 @@ export class UserProfileController {
 
   @Patch('update/:id')
   @UseGuards(JwtAuthGuard)
-  async updateUserProfile(@Body() payload: UpdateProfileDto, @Param('id') userId: string, @User('id') jwtId: string) {
-    return await this.userProfileService.updateUserProfile(payload, userId, jwtId);
+  async updateUserProfile(
+    @Body() payload: UpdateProfileDto,
+    @Param('id') userId: string,
+    @User('id') jwtId: string,
+  ) {
+    return await this.userProfileService.updateUserProfile(
+      payload,
+      userId,
+      jwtId,
+    );
   }
 }

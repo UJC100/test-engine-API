@@ -7,7 +7,7 @@ import { UserSignup } from 'src/entities/signUp.details';
 import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserProfile, UserSignup])], 
+  imports: [TypeOrmModule.forFeature([UserProfile, UserSignup]), PassportModule], 
   controllers: [UserProfileController],
   providers: [UserProfileService]
 })

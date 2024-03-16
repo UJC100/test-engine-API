@@ -33,8 +33,8 @@ export class UserService {
     private readonly mailerService: MailerService
   ) {}
 
-  async signup(user: SignupDto) {
-    const { password, email } = user;
+  async signup(thisUser: SignupDto) {
+    const { password, email } = thisUser;
 
     const exist = await this.userRepo.findOne({ where: { email } });
 
@@ -58,39 +58,51 @@ export class UserService {
 
   }
 
-  async login(userPayload: LoginDto, res: Response) {
+  async login(userPayload: LoginDto, res: Response, req: Request) {
     const { email, password } = userPayload;
 
-    const user = await this.userRepo.findOne({ where: { email: email }, relations: ['userProfile'] });
-    // console.log(user)
+    const thisUser = await this.userRepo.findOne({ where: { email: email }, relations: ['userProfile'] });
+    // console.log(thisUser)
 
-    if (!user) {
+    if (!thisUser) {
       throw new HttpException(`email`, HttpStatus.BAD_REQUEST);
     }
 
-    const userPassword = await bcrypt.compare(password, user.password);
+    const userPassword = await bcrypt.compare(password, thisUser.password);
 
     if (!userPassword) {
       throw new HttpException(`password`, HttpStatus.BAD_REQUEST);
     }
 
-    const details = {
-      sub: user.id,
-      email: user.email,
-      role: user.userProfile.role,
-    };
+    // if (thisUser.userProfile.role) {
+      const user = {
+        sub: thisUser.id,
+        email: thisUser.email,
+        role: thisUser.userProfile.role,
+      };
 
-    const jwtToken = await this.jwtService.signAsync(details);
+      const jwtToken = await this.jwtService.signAsync(user);
 
-    res.cookie('jwt', jwtToken, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 1000,
-    });
+      return {
+        message: `login success`,
+        jwtToken,
+      };
+    // }
+    // else {
+    //    const userWithoutRole = {
+    //      sub: thisUser.id,
+    //      email: thisUser.email,
+    //    };
+    //    const jwtTokenWithoutRole =
+    //      await this.jwtService.signAsync(userWithoutRole);
+    //    return {
+    //      message: `login success`,
+    //      jwtTokenWithoutRole,
+    //    };
+      
+    // }
 
-    return {
-      message: `login success`,
-      jwtToken
-    };
+   
   }
 
   async googleSignup(userDetails: GoogleUserDto) {
@@ -101,11 +113,11 @@ export class UserService {
     const createUser = this.googleUserRepo.create(userDetails)
      await this.googleUserRepo.save(createUser)
 
-    const user = await this.googleUserRepo.findOne({ where: { email: userDetails.email }, relations: ['userProfile']})
+    const thisUser = await this.googleUserRepo.findOne({ where: { email: userDetails.email }, relations: ['userProfile']})
     
     const payload = {
-      sub: user.id,
-      email: user.email
+      sub: thisUser.id,
+      email: thisUser.email
     }
     const token = await this.jwtService.signAsync(payload)
 
@@ -130,9 +142,9 @@ export class UserService {
     console.log(verify);
     const users = await this.userRepo.find({ relations: ['userProfile'] });
 
-    const allUsers = users.map((user) => {
+    const allUsers = users.map((thisUser) => {
       return {
-        user: user.toResponseObj(), // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
+        thisUser: thisUser.toResponseObj(), // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
       };
     });
 
@@ -155,20 +167,20 @@ export class UserService {
     // }
 
 
-    const user = await this.userRepo.findOne({
+    const thisUser = await this.userRepo.findOne({
       where: { id },
       relations: ['userProfile'],
     });
 
-    const userRole = user.userProfile.role
-    if (!user) {
+    const userRole = thisUser.userProfile.role
+    if (!thisUser) {
       throw new HttpException(`User not Found`, HttpStatus.NOT_FOUND);
     }
     if (userRole !== 'admin') {
       throw new UnauthorizedException(`Only admins can access this resource`);
     }
 
-    return user.toResponseObj();
+    return thisUser.toResponseObj();
     // } catch {
     //   // throw new UnauthorizedException()
     // }
@@ -182,24 +194,24 @@ export class UserService {
     }
     const verify = await this.jwtService.verifyAsync(cookie);
 
-    const user = await this.userRepo.findOne({ where: { id: verify.sub } });
+    const thisUser = await this.userRepo.findOne({ where: { id: verify.sub } });
 
-    if (!user) {
+    if (!thisUser) {
       throw new UnauthorizedException(`no try am`);
     }
 
-    const checkPassword = await bcrypt.compare(password, user.password);
+    const checkPassword = await bcrypt.compare(password, thisUser.password);
 
     if (!checkPassword) {
       throw new UnauthorizedException(`Invalid password`);
     }
 
-    await this.userRepo.update(user.id, {
+    await this.userRepo.update(thisUser.id, {
       ...rest,
     });
 
     const updatedUser = await this.userRepo.findOne({
-      where: { id: user.id },
+      where: { id: thisUser.id },
       relations: ['userProfile'],
     });
 
@@ -224,7 +236,7 @@ export class UserService {
     if (!userInfo) {
       throw new HttpException(`Incorrect email`, HttpStatus.BAD_REQUEST);
     }
-    // console.log(contactInfo.user)
+    // console.log(contactInfo.thisUser)
     const userId = userInfo.id;
 
     const payload = {
@@ -237,7 +249,7 @@ export class UserService {
     };
 
     const token = await this.jwtService.signAsync(payload, expiration);
-    const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
+    const link = `http://localhost:2021/thisUser/resetPassword/${userId}/${token}`;
     try {
       await this.mailerService.sendMail({
         to: `${userInfo.email}`,
@@ -259,9 +271,9 @@ export class UserService {
     userId: string,
     token: string,
   ) {
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new HttpException(`No user found`, HttpStatus.NOT_FOUND);
+    const thisUser = await this.userRepo.findOne({ where: { id: userId } });
+    if (!thisUser) {
+      throw new HttpException(`No thisUser found`, HttpStatus.NOT_FOUND);
     }
     //  const secret = process.env.JWT_ENCODE +
 
@@ -275,10 +287,10 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    user.password = hashedPassword;
+    thisUser.password = hashedPassword;
 
-    await this.userRepo.save(user);
-    delete user.password;
-    return user;
+    await this.userRepo.save(thisUser);
+    delete thisUser.password;
+    return thisUser;
   }
 }

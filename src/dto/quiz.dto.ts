@@ -11,7 +11,7 @@ export class QuizDto {
 
   @IsNotEmpty()
   @IsString()
-  questions: string;
+  question: string;
 
   @IsNotEmpty()
   @IsArray()
