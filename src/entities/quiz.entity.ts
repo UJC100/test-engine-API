@@ -19,6 +19,6 @@ export class QuizEntity extends BaseEntity {
   @Column()
   correctAnswer: string;
     
-  @ManyToOne(() => UserProfile, userProfile => userProfile.quiz)
+  @ManyToOne(() => UserProfile, (userProfile) => userProfile.quiz)
   userProfile: UserProfile
 }

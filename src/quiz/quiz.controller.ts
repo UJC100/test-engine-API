@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { QuizDto } from 'src/dto/quiz.dto';
 import { User } from 'src/custome-decorators/user.decorator';
@@ -12,5 +12,11 @@ export class QuizController {
   @UseGuards(JwtAuthGuard)
   async setQuiz(@Body() payload: QuizDto, @User('id') userId: string) {
     return await this.quizService.setQuiz(userId, payload);
+  }
+
+  @Get('getAllQuizes')
+  @UseGuards(JwtAuthGuard)
+  async getAllQuizes(@User('id') userId: string) {
+    return await this.quizService.getAllQuiz(userId);
   }
 }

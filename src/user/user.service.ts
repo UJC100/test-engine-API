@@ -58,7 +58,7 @@ export class UserService {
 
   }
 
-  async login(userPayload: LoginDto, res: Response, req: Request) {
+  async login(userPayload: LoginDto, res: Response) {
     const { email, password } = userPayload;
 
     const thisUser = await this.userRepo.findOne({ where: { email: email }, relations: ['userProfile'] });
@@ -74,33 +74,52 @@ export class UserService {
       throw new HttpException(`password`, HttpStatus.BAD_REQUEST);
     }
 
-    // if (thisUser.userProfile.role) {
-      const user = {
-        sub: thisUser.id,
-        email: thisUser.email,
-        role: thisUser.userProfile.role,
-      };
-
-      const jwtToken = await this.jwtService.signAsync(user);
-
-      return {
-        message: `login success`,
-        jwtToken,
-      };
-    // }
-    // else {
-    //    const userWithoutRole = {
-    //      sub: thisUser.id,
-    //      email: thisUser.email,
-    //    };
-    //    const jwtTokenWithoutRole =
-    //      await this.jwtService.signAsync(userWithoutRole);
-    //    return {
-    //      message: `login success`,
-    //      jwtTokenWithoutRole,
-    //    };
+    if (!thisUser.userProfile) {
+     const userWithoutRole = {
+       sub: thisUser.id,
+       email: thisUser.email,
+     };
+     const jwtTokenWithoutRole =
+        await this.jwtService.signAsync(userWithoutRole);
+      console.log(
+        await this.jwtService.verifyAsync(jwtTokenWithoutRole)
+      )
       
-    // }
+      res.cookie('jwt', jwtTokenWithoutRole, {
+        httpOnly: true,
+        maxAge: 60 * 60 * 1000,
+      });
+
+     return {
+       message: `login success`,
+       jwtTokenWithoutRole,
+     };
+      
+    }
+    else {
+        const user = {
+          sub: thisUser.id,
+          email: thisUser.email,
+          role: thisUser.userProfile.role,
+        };
+
+        const jwtToken = await this.jwtService.signAsync(user);
+
+      console.log(
+        await this.jwtService.verifyAsync(jwtToken)
+      );
+      
+        res.cookie('jwt', jwtToken, {
+          httpOnly: true,
+          maxAge: 60 * 60 * 1000,
+        });
+      
+        return {
+          message: `login success`,
+          jwtToken,
+        };
+      
+    }
 
    
   }

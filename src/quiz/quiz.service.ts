@@ -33,11 +33,31 @@ export class QuizService {
 
     const setQuiz = this.quizRepo.create({
       ...payload,
-      userProfile: findUser.UserProfileResponseObj(),
+      userProfile: findUser.userProfileResponseObj()
     });
 
     const saveQuiz = await this.quizRepo.save(setQuiz);
 
     return saveQuiz;
+  }
+
+
+  async getAllQuiz(userId: string) {
+
+    const user = await this.userRepo.findOne({ where: { id: userId } , relations: ['userProfile']});
+    const userCourse = user.userProfile.course.toLowerCase()
+
+    const quizes = await this.quizRepo.find()
+    const getAllQuiz = quizes.map((quizes) => {
+      let quizCourse = quizes.course.toLowerCase()
+
+      if (userCourse === quizCourse) {
+        return {
+          quizes
+        }
+      }
+    })
+    // PLEASE INCLUDE LOGIC FOR ADMIN TO ACCESS ALL THE COURSES
+    return getAllQuiz
   }
 }

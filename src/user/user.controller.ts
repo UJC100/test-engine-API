@@ -23,17 +23,11 @@ export class UserController {
   }
 
   @Post('signin')
-  async signin(@Body() payload: LoginDto, @Res({ passthrough: true }) res: Response, @Req() req: Request) {
-    const jwtToken = await this.userService.login(payload, res, req);
-    
-    res.cookie('jwt', jwtToken, {
-      httpOnly: true,
-      maxAge: 60 * 60 * 1000,
-    });
-       return res.status(HttpStatus.OK).json({
-         success: true,
-         userToken: jwtToken,
-       });
+  async signin(@Body() payload: LoginDto, @Res({ passthrough: true }) res: Response) {
+    return  await this.userService.login(payload, res);
+    //  res.status(HttpStatus.OK).json({
+    //      success: true,
+    //    });
   }
 
   @Post('googleSignin')

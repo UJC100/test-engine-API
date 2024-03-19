@@ -31,11 +31,11 @@ export class UserProfile extends BaseEntity {
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
   googleUser: GoogleUser;
 
-  @OneToMany(() => QuizEntity, quizEntity => quizEntity.userProfile)
+  @OneToMany(() => QuizEntity, (quizEntity) => quizEntity.userProfile)
   quiz: QuizEntity[]
 
-  UserProfileResponseObj() {
-    const { id, createdAt, updatedAt, ...rest } = this
+  userProfileResponseObj() {
+    const { createdAt, updatedAt, ...rest } = this
     return rest
   }
 }
