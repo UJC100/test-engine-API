@@ -95,4 +95,12 @@ export class UserProfileService {
       signupDetails: updatedUser.signupDetails.ProfileResponseObj()
     };
   }
+
+  async deleteProfile(profileId: string) {
+     await this.userProfileRepo.delete(profileId)
+
+    return {
+      message: 'Profile deleted'
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Patch,
   Post,
@@ -34,5 +35,10 @@ export class UserProfileController {
       userId,
       jwtId,
     );
+  }
+
+  @Delete('deleteProfile/:id')
+  async deleteProfile(@Param('id') profileId: string) {
+    return await this.userProfileService.deleteProfile(profileId)
   }
 }

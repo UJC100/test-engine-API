@@ -76,6 +76,7 @@ export class QuizService {
   async getWeeklyQuiz( userId: string, week: string) {
     const user = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile'] });
     const getRole = user.userProfile
+    console.log(getRole)
     if (!getRole) {
       throw new UnauthorizedException('Please fill in your profile')
     }
@@ -118,6 +119,15 @@ export class QuizService {
 
     if (userRole !== 'tutor') {
       throw new UnauthorizedException('Only tutors can make changes')
+    }
+
+    const quiz = await this.quizRepo.findOne({ where: { id: quizId } });
+    const quizCourse = quiz.course
+    const tutorsCourse = user.userProfile.course
+
+    if (tutorsCourse !== quizCourse) {
+      console.log(tutorsCourse + '||' + quizCourse)
+      throw new UnauthorizedException()
     }
 
     await this.quizRepo.update(quizId, payload)
