@@ -25,13 +25,13 @@ export class UserProfile extends BaseEntity {
   })
   role: Role;
 
-  @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile)
+  @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile, {onDelete: 'CASCADE'})
   signupDetails: UserSignup;
 
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
   googleUser: GoogleUser;
 
-  @OneToMany(() => QuizEntity, (quizEntity) => quizEntity.userProfile)
+  @OneToMany(() => QuizEntity, (quizEntity) => quizEntity.userProfile, )
   quiz: QuizEntity[]
 
   userProfileResponseObj() {

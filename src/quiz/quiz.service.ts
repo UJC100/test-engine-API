@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EditQuizDto } from 'src/dto/editQuiz.dto';
 import { QuizDto } from 'src/dto/quiz.dto';
@@ -24,8 +24,9 @@ export class QuizService {
       relations: ['userProfile'],
     });
     const userProfileId = user.userProfile.id;
-    const findUser = await this.userProfileRepo.findOne({ where: { id: userProfileId } });
-
+    const findUser = await this.userProfileRepo.findOne({
+      where: { id: userProfileId },
+    });
 
     const userRole = user.userProfile.role;
     if (userRole !== 'tutor') {
@@ -34,7 +35,7 @@ export class QuizService {
 
     const setQuiz = this.quizRepo.create({
       ...payload,
-      userProfile: findUser.userProfileResponseObj()
+      userProfile: findUser.userProfileResponseObj(),
     });
 
     const saveQuiz = await this.quizRepo.save(setQuiz);
@@ -42,98 +43,127 @@ export class QuizService {
     return saveQuiz;
   }
 
-
   async getAllQuiz(userId: string) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['userProfile'],
+    });
+    const userCourse = user.userProfile.course.toLowerCase();
 
-    const user = await this.userRepo.findOne({ where: { id: userId } , relations: ['userProfile']});
-    const userCourse = user.userProfile.course.toLowerCase()
-
-    const quizes = await this.quizRepo.find()
+    const quizes = await this.quizRepo.find();
     const getAllQuiz = quizes.map((quizes) => {
       let quizCourse = quizes.course.toLowerCase();
       if (user.userProfile.role === 'admin') {
-        return quizes
+        return quizes;
       }
       if (userCourse === quizCourse) {
         return {
-          quizes
-        }
+          quizes,
+        };
       }
-    })
-     const returnedQuiz = [];
-     getAllQuiz.map((items) => {
-       if (items !== null) {
-         returnedQuiz.push(items);
-       }
-     });
-     if (returnedQuiz.length === 0) {
-       throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
-     }
+    });
+    const returnedQuiz = [];
+    getAllQuiz.map((items) => {
+      if (items !== null) {
+        returnedQuiz.push(items);
+      }
+    });
+    if (returnedQuiz.length === 0) {
+      throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
+    }
 
-    return returnedQuiz
+    return returnedQuiz;
   }
 
-  async getWeeklyQuiz( userId: string, week: string) {
-    const user = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile'] });
-    const getRole = user.userProfile
-    console.log(getRole)
+  async getWeeklyQuiz(userId: string, week: string) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['userProfile'],
+    });
+    const getRole = user.userProfile;
+    console.log(getRole);
     if (!getRole) {
-      throw new UnauthorizedException('Please fill in your profile')
+      throw new UnauthorizedException('Please fill in your profile');
     }
-    const userCourse = user.userProfile.course.toLowerCase()
+    const userCourse = user.userProfile.course.toLowerCase();
 
     const quiz = await this.quizRepo.find({ where: { week } });
-    console.log(quiz)
+    console.log(quiz);
 
-    const getQuiz = quiz.filter(quizes => {
-      const quizCourse = quizes.course.toLowerCase()
+    const getQuiz = quiz.filter((quizes) => {
+      const quizCourse = quizes.course.toLowerCase();
 
-       if (!quizes) {
-         throw new HttpException('No Quiz for this Week Found', HttpStatus.NOT_FOUND);
+      if (!quizes) {
+        throw new HttpException(
+          'No Quiz for this Week Found',
+          HttpStatus.NOT_FOUND,
+        );
       }
-      
-      console.log(quizCourse, userCourse)
-    
+
+      console.log(quizCourse, userCourse);
+
       if (userCourse === quizCourse) {
-        return quizes 
+        return quizes;
       }
-
-    })
-    const returnedQuiz = []
-    getQuiz.map(items => {
+    });
+    const returnedQuiz = [];
+    getQuiz.map((items) => {
       if (items !== null) {
-        returnedQuiz.push(items)
+        returnedQuiz.push(items);
       }
-    })
+    });
     if (returnedQuiz.length === 0) {
-      throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND,);
+      throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
     }
-    return returnedQuiz
-
+    return returnedQuiz;
   }
 
   async editQuiz(quizId: string, payload: EditQuizDto, userId: string) {
-    
-    const user = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile']});
-    const userRole = user.userProfile.role
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['userProfile'],
+    });
+    const userRole = user.userProfile.role;
 
     if (userRole !== 'tutor') {
-      throw new UnauthorizedException('Only tutors can make changes')
+      throw new UnauthorizedException('Only tutors can make changes');
     }
 
     const quiz = await this.quizRepo.findOne({ where: { id: quizId } });
-    const quizCourse = quiz.course
-    const tutorsCourse = user.userProfile.course
+    const quizCourse = quiz.course;
+    const tutorsCourse = user.userProfile.course;
 
     if (tutorsCourse !== quizCourse) {
-      console.log(tutorsCourse + '||' + quizCourse)
-      throw new UnauthorizedException()
+      console.log(tutorsCourse + '||' + quizCourse);
+      throw new UnauthorizedException();
     }
 
-    await this.quizRepo.update(quizId, payload)
-    
+    await this.quizRepo.update(quizId, payload);
+
     const editedQuiz = await this.quizRepo.findOne({ where: { id: quizId } });
 
-    return editedQuiz
+    return editedQuiz;
+  }
+
+  async deleteQuiz(quizId: string, userId: string) {
+    //  await this.userProfileRepo.delete(profileId)
+    const quiz = await this.quizRepo.findOne({
+      where: { id: quizId },
+      relations: ['userProfile'],
+    });
+    const userSignup = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['userProfile'],
+    });
+    const userRole = userSignup.userProfile.role
+    
+    if (userRole !== 'tutor') {
+      throw new ForbiddenException();
+    }
+    await this.quizRepo.delete(quiz.id);
+
+    return {
+      message: 'Quiz deleted',
+    };
   }
 }

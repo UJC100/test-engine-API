@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { QuizDto } from 'src/dto/quiz.dto';
 import { User } from 'src/custome-decorators/user.decorator';
@@ -30,7 +30,17 @@ export class QuizController {
 
   @Patch('editQuiz/:id')
   @UseGuards(JwtAuthGuard)
-  async editQuiz(@Param('id') quizId: string, @Body() payload: EditQuizDto, @User('id') userId: string) {
+  async editQuiz(
+    @Param('id') quizId: string,
+    @Body() payload: EditQuizDto,
+    @User('id') userId: string,
+  ) {
     return await this.quizService.editQuiz(quizId, payload, userId);
+  }
+
+  @Delete('deleteQuiz/:id')
+  @UseGuards(JwtAuthGuard)
+  async deleteQuiz( @Param('id') quizId: string, @User('id') userId: string,) {
+    return await this.quizService.deleteQuiz(quizId, userId);
   }
 }

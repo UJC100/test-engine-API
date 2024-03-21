@@ -13,7 +13,7 @@ export class UserSignup extends BaseEntity {
   password: string;
 
 
-  @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, { cascade: true })
+  @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, { onDelete: 'SET NULL' })
   @JoinColumn()
   userProfile: UserProfile;
 

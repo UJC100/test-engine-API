@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ProfileDto } from 'src/dto/profile.dto';
 import { UpdateProfileDto } from 'src/dto/update.profile.dto';
@@ -96,8 +96,16 @@ export class UserProfileService {
     };
   }
 
-  async deleteProfile(profileId: string) {
-     await this.userProfileRepo.delete(profileId)
+  async deleteProfile(profileId: string, userId: string) {
+    //  await this.userProfileRepo.delete(profileId)
+    const userProfile = await this.userProfileRepo.findOne({ where: { id: profileId }, relations: ['signupDetails'] });
+    const userSignup = await this.userRepo.findOne({ where: { id: userId } });
+    const user = userSignup.id
+    const userIdFromProfile = userProfile.signupDetails.id
+    if (user !== userIdFromProfile) {
+      throw new ForbiddenException()
+    }
+    await this.userProfileRepo.delete(userProfile.id)
 
     return {
       message: 'Profile deleted'
