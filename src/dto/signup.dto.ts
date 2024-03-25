@@ -9,9 +9,6 @@ export class SignupDto {
   @IsNotEmpty()
   password: string;
 
-  // @IsString()
-  // @IsOptional()
-  // role: string;
 
   // @IsString()
   // @IsOptional()

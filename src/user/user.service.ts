@@ -17,6 +17,7 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
 import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { GoogleUser } from 'src/entities/google.entity';
+import { UpdateRefreshTokenDto } from 'src/dto/update.refreshToken';
 
 
 
@@ -32,6 +33,74 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService
   ) {}
+
+  async getTokens(role: string, id: string, email: string) {
+    const [at, rt] = await Promise.all([
+      
+      this.jwtService.signAsync(
+        {
+          id,
+          email,
+          role,
+        },
+        {
+          secret: process.env.ACCESS_TOKEN_SECRET,
+          expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN,
+        },
+      ),
+
+      this.jwtService.signAsync(
+        {
+          id,
+          email,
+          role,
+        },
+        {
+          secret: process.env.REFRESH_TOKEN_SECRET,
+          expiresIn: process.env.REFRESH_TOKEN_EXPIRESIN,
+        },
+      ),
+    ]);
+
+    return {
+      access_token: at,
+      refresh_token: rt
+    }
+  }
+  
+  async getTokensWithoutRoles( id: string, email: string) {
+    const [at, rt] = await Promise.all([
+      this.jwtService.signAsync(
+        {
+          id,
+          email,
+        },
+        {
+          secret: process.env.ACCESS_TOKEN_SECRET,
+          expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN,
+        },
+      ),
+
+      this.jwtService.signAsync(
+        {
+          id,
+          email,
+        },
+        {
+          secret: process.env.REFRESH_TOKEN_SECRET,
+          expiresIn: process.env.REFRESH_TOKEN_EXPIRESIN,
+        },
+      ),
+    ]);
+
+    return {
+      access_token: at,
+      refresh_token: rt
+    }
+  }
+  //THE ABOVE ARE HELPER
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
 
   async signup(thisUser: SignupDto) {
     const { password, email } = thisUser;
@@ -75,15 +144,21 @@ export class UserService {
     }
 
     if (!thisUser.userProfile) {
-     const userWithoutRole = {
-       sub: thisUser.id,
-       email: thisUser.email,
-     };
-     const jwtTokenWithoutRole =
-        await this.jwtService.signAsync(userWithoutRole);
+    
+      const jwtTokenWithoutRole = await this.getTokensWithoutRoles(thisUser.id, thisUser.email);
+
+      const { refreshToken }: UpdateRefreshTokenDto = {
+        refreshToken: jwtTokenWithoutRole.refresh_token,
+      };
+      const hashedRt = await bcrypt.hash(refreshToken, 12);
+      await this.userRepo.update(thisUser.id, {
+        refreshToken: hashedRt,
+      });
       console.log(
-        await this.jwtService.verifyAsync(jwtTokenWithoutRole)
-      )
+        await this.jwtService.verifyAsync(jwtTokenWithoutRole.access_token, {
+          secret: process.env.ACCESS_TOKEN_SECRET,
+        }),
+      );
       
       res.cookie('jwt', jwtTokenWithoutRole, {
         httpOnly: true,
@@ -97,16 +172,21 @@ export class UserService {
       
     }
     else {
-        const user = {
-          sub: thisUser.id,
-          email: thisUser.email,
-          role: thisUser.userProfile.role,
-        };
-
-        const jwtToken = await this.jwtService.signAsync(user);
-
+    
+      const jwtToken = await this.getTokens(thisUser.userProfile.role, thisUser.id, thisUser.email);
+      
+        const { refreshToken }: UpdateRefreshTokenDto = {
+          refreshToken: jwtToken.refresh_token,
+      };
+      const hashedRt = await bcrypt.hash(refreshToken, 12)
+        await this.userRepo.update(thisUser.id, {
+          refreshToken: hashedRt,
+        });
+ 
       console.log(
-        await this.jwtService.verifyAsync(jwtToken)
+        await this.jwtService.verifyAsync(jwtToken.access_token, {
+          secret: process.env.ACCESS_TOKEN_SECRET,
+        }),
       );
       
         res.cookie('jwt', jwtToken, {

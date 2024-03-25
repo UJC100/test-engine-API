@@ -11,26 +11,21 @@ import { JwtSrategy } from '../jwt-auth/jwt.strategy';
 import { GoogleStrategy } from 'src/googleAuth/googleStrategy';
 import { GoogleUserController } from './google.user.controller';
 import { GoogleUser } from 'src/entities/google.entity';
+import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({
   imports: [
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         global: true,
-        secret: configService.getOrThrow('JWT_SECRET'),
-        signOptions: {
-          algorithm: configService.getOrThrow('ALGORITHM'),
-          expiresIn: configService.getOrThrow('EXPIRESIN'),
-        },
+
       }),
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([UserSignup, UserProfile, GoogleUser]),
-    PassportModule
+    PassportModule,
   ],
-  providers: [UserService, JwtSrategy, GoogleStrategy],
+  providers: [UserService, JwtSrategy, GoogleStrategy, RefreshTokenStrategy],
   controllers: [UserController, GoogleUserController],
 })
-export class UserModule {
-
-}
+export class UserModule {}
