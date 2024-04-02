@@ -19,7 +19,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh') 
       const refreshToken = req.get('authorization').replace('bearer', '').trim()
     // console.log(payload)
     return {
-      id: payload.sub,
+      id: payload.id,
       email: payload.email,
       role: payload.role,
       refreshToken

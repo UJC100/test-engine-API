@@ -6,7 +6,7 @@ export class ProfileDto {
   fullName: string;
 
   @IsNotEmpty()
-  @IsString()
+  @IsString({})
   userName: string;
 
   @IsNotEmpty()

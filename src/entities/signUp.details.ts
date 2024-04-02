@@ -12,24 +12,23 @@ export class UserSignup extends BaseEntity {
   @Column()
   password: string;
 
-  @Column({nullable:true})
-  refreshToken: string
+  @Column({ nullable: true })
+  refreshToken: string;
 
-
-  @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, { onDelete: 'SET NULL' })
-  @JoinColumn()
-  userProfile: UserProfile;
-
+  @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, {
+    onDelete: 'SET NULL',
+  })
+  userProfile?: UserProfile;
 
   toResponseObj() {
-    const { password, ...rest } = this
-    
-    return rest
+    const { password, ...rest } = this;
+
+    return rest;
   }
 
   ProfileResponseObj() {
-    const { password, createdAt, updatedAt, ...rest } = this
-    
-    return rest
+    const { password, createdAt, updatedAt, ...rest } = this;
+
+    return rest;
   }
 }

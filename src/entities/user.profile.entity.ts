@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
 import { UserSignup } from "./signUp.details";
 import { Role } from "../enum/role";
@@ -25,17 +25,20 @@ export class UserProfile extends BaseEntity {
   })
   role: Role;
 
-  @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile, {onDelete: 'CASCADE'})
+  @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
   signupDetails: UserSignup;
 
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)
   googleUser: GoogleUser;
 
-  @OneToMany(() => QuizEntity, (quizEntity) => quizEntity.userProfile, )
-  quiz: QuizEntity[]
+  @OneToMany(() => QuizEntity, (quizEntity) => quizEntity.userProfile)
+  quiz: QuizEntity[];
 
   userProfileResponseObj() {
-    const { createdAt, updatedAt, ...rest } = this
-    return rest
+    const { createdAt, updatedAt, ...rest } = this;
+    return rest;
   }
 }

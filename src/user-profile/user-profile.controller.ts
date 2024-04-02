@@ -12,6 +12,7 @@ import { ProfileDto } from 'src/dto/profile.dto';
 import { User } from 'src/custome-decorators/user.decorator';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt.guard';
 import { UpdateProfileDto } from 'src/dto/update.profile.dto';
+import { UserSignup } from 'src/entities/signUp.details';
 
 @Controller('profile')
 export class UserProfileController {
@@ -39,7 +40,10 @@ export class UserProfileController {
 
   @Delete('deleteProfile/:id')
   @UseGuards(JwtAuthGuard)
-  async deleteProfile( @Param('id') profileId: string, @User('id') userId: string) {
+  async deleteProfile(
+    @Param('id') profileId: string,
+    @User('id') userId: string,
+  ) {
     return await this.userProfileService.deleteProfile(profileId, userId);
   }
 }

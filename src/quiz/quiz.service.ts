@@ -80,6 +80,7 @@ export class QuizService {
       where: { id: userId },
       relations: ['userProfile'],
     });
+    console.log(user.email)
     const getRole = user.userProfile;
     console.log(getRole);
     if (!getRole) {
@@ -88,6 +89,7 @@ export class QuizService {
     const userCourse = user.userProfile.course.toLowerCase();
 
     const quiz = await this.quizRepo.find({ where: { week } });
+    
     console.log(quiz);
 
     const getQuiz = quiz.filter((quizes) => {

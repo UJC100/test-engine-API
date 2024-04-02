@@ -36,7 +36,6 @@ export class UserService {
 
   async getTokens(role: string, id: string, email: string) {
     const [at, rt] = await Promise.all([
-      
       this.jwtService.signAsync(
         {
           id,
@@ -147,20 +146,21 @@ export class UserService {
     
       const jwtTokenWithoutRole = await this.getTokensWithoutRoles(thisUser.id, thisUser.email);
 
-      const { refreshToken }: UpdateRefreshTokenDto = {
-        refreshToken: jwtTokenWithoutRole.refresh_token,
-      };
-      const hashedRt = await bcrypt.hash(refreshToken, 12);
+      // const { refreshToken }: UpdateRefreshTokenDto = {
+      //   refreshToken: jwtTokenWithoutRole.refresh_token,
+      // };
+      const hashedRt = await bcrypt.hash(jwtTokenWithoutRole.refresh_token, 12);
       await this.userRepo.update(thisUser.id, {
         refreshToken: hashedRt,
       });
-      console.log(
-        await this.jwtService.verifyAsync(jwtTokenWithoutRole.access_token, {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-        }),
-      );
+      // console.log(
+      //   await this.jwtService.verifyAsync(jwtTokenWithoutRole.access_token, {
+      //     secret: process.env.ACCESS_TOKEN_SECRET,
+      //   }),
+      // );
       
-      res.cookie('jwt', jwtTokenWithoutRole, {
+      
+      res.cookie('jwt', jwtTokenWithoutRole.access_token, {
         httpOnly: true,
         maxAge: 60 * 60 * 1000,
       });
@@ -175,21 +175,21 @@ export class UserService {
     
       const jwtToken = await this.getTokens(thisUser.userProfile.role, thisUser.id, thisUser.email);
       
-        const { refreshToken }: UpdateRefreshTokenDto = {
-          refreshToken: jwtToken.refresh_token,
-      };
-      const hashedRt = await bcrypt.hash(refreshToken, 12)
+      //   const { refreshToken }: UpdateRefreshTokenDto = {
+      //     refreshToken: jwtToken.refresh_token,
+      // };
+      const hashedRt = await bcrypt.hash(jwtToken.refresh_token, 12);
         await this.userRepo.update(thisUser.id, {
           refreshToken: hashedRt,
         });
- 
       console.log(
         await this.jwtService.verifyAsync(jwtToken.access_token, {
           secret: process.env.ACCESS_TOKEN_SECRET,
         }),
       );
+      console.log(thisUser.refreshToken);
       
-        res.cookie('jwt', jwtToken, {
+        res.cookie('jwt', jwtToken.access_token, {
           httpOnly: true,
           maxAge: 60 * 60 * 1000,
         });
@@ -203,6 +203,7 @@ export class UserService {
 
    
   }
+
 
   async googleSignup(userDetails: GoogleUserDto) {
     
@@ -226,13 +227,18 @@ export class UserService {
     }
   }
 
-  async getAllUsers(req: Request) {
+  async getAllUsers(req: Request, id: string) {
+
+    const user = await this.userRepo.findOne({ where: { id } });
+    console.log(user.email)
     const cookie = req.cookies['jwt'];
     if (!cookie) {
       throw new UnauthorizedException();
     }
     // console.log(req.cookies)
-    const verify = await this.jwtService.verifyAsync(cookie);
+    const verify = await this.jwtService.verifyAsync(cookie, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
 
     // if (!verify || verify.role !== 'admin') {
     //   throw new UnauthorizedException(`Only admins can access this resource`);
@@ -258,7 +264,9 @@ export class UserService {
       throw new UnauthorizedException();
     }
 
-    const verifyJwt = await this.jwtService.verifyAsync(cookie);
+    const verifyJwt = await this.jwtService.verifyAsync(cookie, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
     // console.log(verifyJwt)
     // if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {
     //   // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
@@ -291,9 +299,11 @@ export class UserService {
     if (!cookie) {
       throw new UnauthorizedException();
     }
-    const verify = await this.jwtService.verifyAsync(cookie);
+    const verify = await this.jwtService.verifyAsync(cookie, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
 
-    const thisUser = await this.userRepo.findOne({ where: { id: verify.sub } });
+    const thisUser = await this.userRepo.findOne({ where: { id: verify.id } });
 
     if (!thisUser) {
       throw new UnauthorizedException(`no try am`);
@@ -315,17 +325,19 @@ export class UserService {
     });
 
     return updatedUser.toResponseObj();
+    
   }
 
-  // async logout(res: Response) {
-  //    res.clearCookie('jwt', {
-  //     httpOnly: true
-  //   })
+  async logout(userId: string) {
+    const user = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile'] })
 
-  //   return {
-  //     message : `User logged-out`
-  //   }
-  // }
+    await this.userRepo.update(userId, {
+      refreshToken: null
+    })
+    const updatedUser = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile'], });
+
+    return updatedUser;
+  }
 
   async forgotPassword(details: ForgotPasswordDto) {
     const { email } = details;

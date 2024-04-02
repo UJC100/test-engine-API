@@ -16,12 +16,15 @@ export class UserProfileService {
     private readonly userRepo: Repository<UserSignup>,
   ) {}
 
-  async createProfile(payload: ProfileDto, userId: string) {
+  async createProfile(payload: ProfileDto , userId:string) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
-
+    console.log('')
+    console.log('Coming from Create profile route')
+    console.log(user)
     if (!user) {
       throw new UnauthorizedException();
     }
+    console.log(user)
 
     const tutorSecret = process.env.TUTOR_KEY;
     const AdminSecret = process.env.ADMIN_KEY;
@@ -48,7 +51,7 @@ export class UserProfileService {
       const saveTutor = await this.userProfileRepo.save(createdTutor);
 
       return {
-        saveTutor,
+        saveTutor,   
       };
     }
 
@@ -61,6 +64,7 @@ export class UserProfileService {
 
       const saveUser = await this.userProfileRepo.save(createdUser);
 
+
       return {
         saveUser,
       };
@@ -70,12 +74,12 @@ export class UserProfileService {
   }
 
   async updateUserProfile(payload: UpdateProfileDto, userId: string, jwtId: string) {
-    const verifyUser = await this.userRepo.findOne({ where: { id: jwtId } , relations: ['userProfile']})
+    const verifyUser = await this.userRepo.findOne({ where: { id: jwtId }, relations: ['userProfile'] })
     const user = await this.userProfileRepo.findOne({
       where: { id: userId },
       relations: ['signupDetails'],
     });
-    console.log(verifyUser.id, user.signupDetails.id)
+    // console.log(verifyUser.id, user.signupDetails.id)
     if (verifyUser.id !== user.signupDetails.id) {
       throw new UnauthorizedException()
     }
