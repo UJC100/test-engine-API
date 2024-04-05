@@ -240,9 +240,9 @@ export class UserService {
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
 
-    // if (!verify || verify.role !== 'admin') {
-    //   throw new UnauthorizedException(`Only admins can access this resource`);
-    // }
+    if (!verify || verify.role !== 'admin') {
+      throw new UnauthorizedException(`Only admins can access this resource`);
+    }
 
     console.log(verify);
     const users = await this.userRepo.find({ relations: ['userProfile'] });
@@ -267,6 +267,8 @@ export class UserService {
     const verifyJwt = await this.jwtService.verifyAsync(cookie, {
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
+    const userId = verifyJwt.id
+    
     // console.log(verifyJwt)
     // if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {
     //   // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
@@ -274,18 +276,24 @@ export class UserService {
     // }
 
 
+    const authorizedUser = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['userProfile'],
+    });
+
+    const userRole = authorizedUser.userProfile.role;
+    if (!authorizedUser) {
+      throw new HttpException(`User not Found`, HttpStatus.NOT_FOUND);
+    }
+    
+    if (userRole !== 'admin') {
+      throw new UnauthorizedException(`Only admins can access this resource`);
+    }
+
     const thisUser = await this.userRepo.findOne({
       where: { id },
       relations: ['userProfile'],
     });
-
-    const userRole = thisUser.userProfile.role
-    if (!thisUser) {
-      throw new HttpException(`User not Found`, HttpStatus.NOT_FOUND);
-    }
-    if (userRole !== 'admin') {
-      throw new UnauthorizedException(`Only admins can access this resource`);
-    }
 
     return thisUser.toResponseObj();
     // } catch {
@@ -329,14 +337,13 @@ export class UserService {
   }
 
   async logout(userId: string) {
-    const user = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile'] })
-
     await this.userRepo.update(userId, {
       refreshToken: null
     })
-    const updatedUser = await this.userRepo.findOne({ where: { id: userId }, relations: ['userProfile'], });
 
-    return updatedUser;
+    return {
+      message: 'Logged out'
+    };
   }
 
   async forgotPassword(details: ForgotPasswordDto) {

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { UserService } from './user.service';
 import { SignupDto } from '../dto/signup.dto';
@@ -24,6 +24,7 @@ export class UserController {
   }
 
   @Post('signin')
+  @HttpCode(HttpStatus.OK)
   async signin(
     @Body() payload: LoginDto,
     @Res({ passthrough: true }) res: Response,
@@ -62,6 +63,7 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Post('logout')
   async logOut(@User('id') userId: string, @Res() res: Response) {
     await this.userService.logout(userId);
