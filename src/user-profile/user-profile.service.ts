@@ -65,10 +65,8 @@ export class UserProfileService {
       relations: ['signupDetails'],
     });
 
-    return {
-      ...updatedUser,
-      signupDetails: updatedUser.signupDetails.ProfileResponseObj(),
-    };
+    return updatedUser
+    ;
   }
 
   async deleteProfile(profileId: string, userId: string) {

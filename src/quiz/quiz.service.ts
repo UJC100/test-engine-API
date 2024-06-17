@@ -29,7 +29,7 @@ export class QuizService {
       where: { id: userId },
     });
     const userProfileId = user.userProfile.id;
-    const findUser = await this.userProfileRepo.findOne({
+    const userProfile = await this.userProfileRepo.findOne({
       where: { id: userProfileId },
     });
 
@@ -40,7 +40,7 @@ export class QuizService {
 
     const setQuiz = this.quizRepo.create({
       ...payload,
-      userProfile: findUser.userProfileResponseObj(),
+      userProfile: userProfile,
     });
 
     const saveQuiz = await this.quizRepo.save(setQuiz);
@@ -55,28 +55,18 @@ export class QuizService {
     const userCourse = user.userProfile.course.toLowerCase();
 
     const quizes = await this.quizRepo.find();
-    const getAllQuiz = quizes.map((quizes) => {
+     quizes.map((quizes) => {
       let quizCourse = quizes.course.toLowerCase();
       if (user.role === 'admin') {
         return quizes;
       }
       if (userCourse === quizCourse) {
-        return {
-          quizes,
-        };
+        if(!quizes)  throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND); 
+        return quizes  
       }
-    });
-    const returnedQuiz = [];
-    getAllQuiz.map((items) => {
-      if (items !== null) {
-        returnedQuiz.push(items);
-      }
-    });
-    if (returnedQuiz.length === 0) {
-      throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
-    }
-
-    return returnedQuiz;
+     });
+    
+    return quizes
   }
 
   async getWeeklyQuiz(userId: string, week: string) {
@@ -85,9 +75,9 @@ export class QuizService {
       relations: ['userProfile'],
     });
     console.log(user.email);
-    const getRole = user.userProfile;
-    console.log(getRole);
-    if (!getRole) {
+    const course = user.userProfile.course;
+    console.log(course);
+    if (!course) {
       throw new UnauthorizedException('Please fill in your profile');
     }
     const userCourse = user.userProfile.course.toLowerCase();
@@ -112,16 +102,16 @@ export class QuizService {
         return quizes;
       }
     });
-    const returnedQuiz = [];
-    getQuiz.map((items) => {
-      if (items !== null) {
-        returnedQuiz.push(items);
-      }
-    });
-    if (returnedQuiz.length === 0) {
-      throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
-    }
-    return returnedQuiz;
+    // const returnedQuiz = [];
+    // getQuiz.map((items) => {
+    //   if (items !== null) {
+    //     returnedQuiz.push(items);
+    //   }
+    // });
+    // if (returnedQuiz.length === 0) {
+    //   throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
+    // }
+    // return returnedQuiz;
   }
 
   async editQuiz(quizId: string, payload: EditQuizDto, userId: string) {

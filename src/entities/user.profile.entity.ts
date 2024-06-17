@@ -25,9 +25,4 @@ export class UserProfile extends BaseEntity {
 
   @OneToMany(() => QuizEntity, (quizEntity) => quizEntity.userProfile)
   quiz: QuizEntity[];
-
-  userProfileResponseObj() {
-    const { createdAt, updatedAt, ...rest } = this;
-    return rest;
-  }
 }

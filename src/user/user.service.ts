@@ -258,13 +258,13 @@ export class UserService {
     console.log(verify);
     const users = await this.userRepo.find({ relations: ['userProfile'] });
 
-    const allUsers = users.map((thisUser) => {
+     users.map((thisUser) => {
       return {
-        thisUser: thisUser.toResponseObj(), // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
+        thisUser // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
       };
     });
 
-    return allUsers;
+    return users;
   }
 
   async getOneUser(id: string, req: Request) {
@@ -301,7 +301,7 @@ export class UserService {
       relations: ['userProfile'],
     });
 
-    return thisUser.toResponseObj();
+    return thisUser;
     // } catch {
     //   // throw new UnauthorizedException()
     // }
@@ -338,7 +338,7 @@ export class UserService {
       relations: ['userProfile'],
     });
 
-    return updatedUser.toResponseObj();
+    return updatedUser;
   }
 
   async logout(userId: string) {

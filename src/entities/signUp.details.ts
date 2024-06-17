@@ -36,15 +36,4 @@ export class UserSignup extends BaseEntity {
   @JoinColumn()
   userProfile?: UserProfile;
 
-  toResponseObj() {
-    const { password, ...rest } = this;
-
-    return rest;
-  }
-
-  ProfileResponseObj() {
-    const { password, createdAt, updatedAt, ...rest } = this;
-
-    return rest;
-  }
 }
