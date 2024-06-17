@@ -8,10 +8,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UserProfileService } from './user-profile.service';
-import { ProfileDto } from 'src/dto/profile.dto';
+import { ProfileDto } from 'src/user-profile/dto/profile.dto';
 import { User } from 'src/custome-decorators/user.decorator';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt.guard';
-import { UpdateProfileDto } from 'src/dto/update.profile.dto';
+import { UpdateProfileDto } from './dto/profile.dto';
 import { UserSignup } from 'src/entities/signUp.details';
 
 @Controller('profile')

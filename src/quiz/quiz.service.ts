@@ -1,7 +1,13 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EditQuizDto } from 'src/dto/editQuiz.dto';
-import { QuizDto } from 'src/dto/quiz.dto';
+import { EditQuizDto } from './dto/quiz.dto';
+import { QuizDto } from 'src/quiz/dto/quiz.dto';
 import { QuizEntity } from 'src/entities/quiz.entity';
 import { UserSignup } from 'src/entities/signUp.details';
 import { UserProfile } from 'src/entities/user.profile.entity';
@@ -21,14 +27,13 @@ export class QuizService {
   async setQuiz(userId: string, payload: QuizDto) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['userProfile'],
     });
     const userProfileId = user.userProfile.id;
     const findUser = await this.userProfileRepo.findOne({
       where: { id: userProfileId },
     });
 
-    const userRole = user.userProfile.role;
+    const userRole = user.role;
     if (userRole !== 'tutor') {
       throw new UnauthorizedException();
     }
@@ -46,14 +51,13 @@ export class QuizService {
   async getAllQuiz(userId: string) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['userProfile'],
     });
     const userCourse = user.userProfile.course.toLowerCase();
 
     const quizes = await this.quizRepo.find();
     const getAllQuiz = quizes.map((quizes) => {
       let quizCourse = quizes.course.toLowerCase();
-      if (user.userProfile.role === 'admin') {
+      if (user.role === 'admin') {
         return quizes;
       }
       if (userCourse === quizCourse) {
@@ -80,7 +84,7 @@ export class QuizService {
       where: { id: userId },
       relations: ['userProfile'],
     });
-    console.log(user.email)
+    console.log(user.email);
     const getRole = user.userProfile;
     console.log(getRole);
     if (!getRole) {
@@ -89,7 +93,7 @@ export class QuizService {
     const userCourse = user.userProfile.course.toLowerCase();
 
     const quiz = await this.quizRepo.find({ where: { week } });
-    
+
     console.log(quiz);
 
     const getQuiz = quiz.filter((quizes) => {
@@ -123,9 +127,8 @@ export class QuizService {
   async editQuiz(quizId: string, payload: EditQuizDto, userId: string) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['userProfile'],
     });
-    const userRole = user.userProfile.role;
+    const userRole = user.role;
 
     if (userRole !== 'tutor') {
       throw new UnauthorizedException('Only tutors can make changes');
@@ -155,10 +158,9 @@ export class QuizService {
     });
     const userSignup = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['userProfile'],
     });
-    const userRole = userSignup.userProfile.role
-    
+    const userRole = userSignup.role;
+
     if (userRole !== 'tutor') {
       throw new ForbiddenException();
     }

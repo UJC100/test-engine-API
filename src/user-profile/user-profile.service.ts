@@ -1,7 +1,11 @@
-import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ProfileDto } from 'src/dto/profile.dto';
-import { UpdateProfileDto } from 'src/dto/update.profile.dto';
+import { ProfileDto } from 'src/user-profile/dto/profile.dto';
+import { UpdateProfileDto } from './dto/profile.dto';
 import { UserSignup } from 'src/entities/signUp.details';
 import { UserProfile } from 'src/entities/user.profile.entity';
 import { Role } from 'src/enum/role';
@@ -16,74 +20,41 @@ export class UserProfileService {
     private readonly userRepo: Repository<UserSignup>,
   ) {}
 
-  async createProfile(payload: ProfileDto , userId:string) {
+  async createProfile(payload: ProfileDto, userId: string) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    console.log('')
-    console.log('Coming from Create profile route')
-    console.log(user)
+    console.log('');
+    console.log('Coming from Create profile route');
+    console.log(user);
     if (!user) {
       throw new UnauthorizedException();
     }
-    console.log(user)
+    console.log(user);
 
-    const tutorSecret = process.env.TUTOR_KEY;
-    const AdminSecret = process.env.ADMIN_KEY;
+    //    user.role = Role.tutor
+    const createProfile = this.userProfileRepo.create(payload);
+    const Profile = await this.userProfileRepo.save(createProfile);
 
-    if (payload.role === 'admin' && AdminSecret === payload.secretKey) {
-      //    user.role = Role.tutor
-      const createdAdmin = this.userProfileRepo.create({
-        ...payload,
-        signupDetails: user.ProfileResponseObj(),
-        role: Role.admin,
-      });
-      const saveAdmin = await this.userProfileRepo.save(createdAdmin);
-
-      return {
-        saveAdmin,
-      };
-    }
-    if (payload.role === 'tutor' && tutorSecret === payload.secretKey) {
-      const createdTutor = this.userProfileRepo.create({
-        ...payload,
-        signupDetails: user.ProfileResponseObj(),
-        role: Role.tutor,
-      });
-      const saveTutor = await this.userProfileRepo.save(createdTutor);
-
-      return {
-        saveTutor,   
-      };
-    }
-
-    if (payload.role === 'student') {
-      const createdUser = this.userProfileRepo.create({
-        ...payload,
-        signupDetails: user.ProfileResponseObj(),
-        role: Role.student,
-      });
-
-      const saveUser = await this.userProfileRepo.save(createdUser);
-
-
-      return {
-        saveUser,
-      };
-    } else {
-      throw new UnauthorizedException(`Invalid role or key`);
-    }
+    return Profile;
   }
 
-  async updateUserProfile(payload: UpdateProfileDto, userId: string, jwtId: string) {
-    const verifyUser = await this.userRepo.findOne({ where: { id: jwtId }, relations: ['userProfile'] })
+  async updateUserProfile(
+    payload: UpdateProfileDto,
+    userId: string,
+    jwtId: string,
+  ) {
+    const verifyUser = await this.userRepo.findOne({
+      where: { id: jwtId },
+      relations: ['userProfile'],
+    });
     const user = await this.userProfileRepo.findOne({
       where: { id: userId },
       relations: ['signupDetails'],
     });
     // console.log(verifyUser.id, user.signupDetails.id)
     if (verifyUser.id !== user.signupDetails.id) {
-      throw new UnauthorizedException()
+      throw new UnauthorizedException();
     }
-    
+
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
@@ -96,23 +67,26 @@ export class UserProfileService {
 
     return {
       ...updatedUser,
-      signupDetails: updatedUser.signupDetails.ProfileResponseObj()
+      signupDetails: updatedUser.signupDetails.ProfileResponseObj(),
     };
   }
 
   async deleteProfile(profileId: string, userId: string) {
     //  await this.userProfileRepo.delete(profileId)
-    const userProfile = await this.userProfileRepo.findOne({ where: { id: profileId }, relations: ['signupDetails'] });
+    const userProfile = await this.userProfileRepo.findOne({
+      where: { id: profileId },
+      relations: ['signupDetails'],
+    });
     const userSignup = await this.userRepo.findOne({ where: { id: userId } });
-    const user = userSignup.id
-    const userIdFromProfile = userProfile.signupDetails.id
+    const user = userSignup.id;
+    const userIdFromProfile = userProfile.signupDetails.id;
     if (user !== userIdFromProfile) {
-      throw new ForbiddenException()
+      throw new ForbiddenException();
     }
-    await this.userProfileRepo.delete(userProfile.id)
+    await this.userProfileRepo.delete(userProfile.id);
 
     return {
-      message: 'Profile deleted'
-    }
+      message: 'Profile deleted',
+    };
   }
 }

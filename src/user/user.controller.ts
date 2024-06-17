@@ -1,18 +1,28 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
 import { UserService } from './user.service';
-import { SignupDto } from '../dto/signup.dto';
-import { LoginDto } from '../dto/login.dto';
+import { SignupDto } from './dto/user-dto';
+import { LoginDto } from './dto/user-dto';
 import { JwtAuthGuard } from '../jwt-auth/jwt.guard';
-import { UpdateLoginDetailsDto } from 'src/dto/update.login.dto';
-import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
-import { ForgotPasswordDto } from 'src/dto/forgotPassword.dto';
-import { GoogleUserDto } from 'src/dto/google.signup.dto';
+import { UpdateLoginDetailsDto } from './dto/user-dto';
+import { ResetPasswordDto } from './dto/user-dto';
+import { ForgotPasswordDto } from './dto/user-dto';
+// import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { User } from '../custome-decorators/user.decorator';
 import { Http2ServerRequest } from 'http2';
-
-
-
 
 @Controller('user')
 export class UserController {
@@ -35,13 +45,13 @@ export class UserController {
     //    });
   }
 
-  @Post('googleSignin')
-  async googleSignin(
-    @Body() payload: GoogleUserDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return await this.userService.googleSignup(payload);
-  }
+  // @Post('googleSignin')
+  // async googleSignin(
+  //   @Body() payload: GoogleUserDto,
+  //   @Res({ passthrough: true }) res: Response,
+  // ) {
+  //   return await this.userService.signup(payload);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get('allUsers')

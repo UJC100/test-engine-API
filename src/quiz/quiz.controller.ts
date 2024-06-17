@@ -1,9 +1,18 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { QuizService } from './quiz.service';
-import { QuizDto } from 'src/dto/quiz.dto';
+import { QuizDto } from 'src/quiz/dto/quiz.dto';
 import { User } from 'src/custome-decorators/user.decorator';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt.guard';
-import { EditQuizDto } from 'src/dto/editQuiz.dto';
+import { EditQuizDto } from './dto/quiz.dto';
 
 @Controller('quiz')
 export class QuizController {
@@ -40,7 +49,7 @@ export class QuizController {
 
   @Delete('deleteQuiz/:id')
   @UseGuards(JwtAuthGuard)
-  async deleteQuiz( @Param('id') quizId: string, @User('id') userId: string,) {
+  async deleteQuiz(@Param('id') quizId: string, @User('id') userId: string) {
     return await this.quizService.deleteQuiz(quizId, userId);
   }
 }

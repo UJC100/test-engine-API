@@ -3,21 +3,27 @@ import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 export class ProfileDto {
   @IsNotEmpty()
   @IsString()
-  fullName: string;
+  firstName: string;
 
   @IsNotEmpty()
-  @IsString({})
-  userName: string;
+  @IsString()
+  lastName: string;
 
   @IsNotEmpty()
   @IsString()
   course: string;
+}
 
-  @IsNotEmpty()
+export class UpdateProfileDto {
+  @IsOptional()
   @IsString()
-  role: string;
+  fullName: string;
 
   @IsOptional()
   @IsString()
-  secretKey: string;
+  userName: string;
+
+  @IsOptional()
+  @IsString()
+  course: string;
 }

@@ -1,38 +1,36 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SignupDto } from 'src/dto/signup.dto';
+import { SignupDto } from 'src/user/dto/user-dto';
 import { UserSignup } from 'src/entities/signUp.details';
 import { Repository, UnorderedBulkOperation } from 'typeorm';
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcrypt';
 import { Role } from 'src/enum/role';
-import { ProfileDto } from 'src/dto/profile.dto';
-import { LoginDto } from 'src/dto/login.dto';
+import { ProfileDto } from 'src/user-profile/dto/profile.dto';
+import { LoginDto } from './dto/user-dto';
 import { verify } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
-import {Response, Request} from 'express'
+import { Response, Request } from 'express';
 import { Console } from 'console';
-import { UpdateLoginDetailsDto } from 'src/dto/update.login.dto';
-import { ForgotPasswordDto } from 'src/dto/forgotPassword.dto';
+import { UpdateLoginDetailsDto } from './dto/user-dto';
+import { ForgotPasswordDto } from './dto/user-dto';
 import { MailerService } from '@nestjs-modules/mailer';
-import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
-import { GoogleUserDto } from 'src/dto/google.signup.dto';
-import { GoogleUser } from 'src/entities/google.entity';
-import { UpdateRefreshTokenDto } from 'src/dto/update.refreshToken';
+import { ResetPasswordDto } from './dto/user-dto';
+import { UpdateRefreshTokenDto } from './dto/user-dto';
 import { resolve } from 'path';
-
-
-
-
-
-
+import { UserRoles } from 'src/helperFunctions/userRoles';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(UserSignup) private readonly userRepo: Repository<UserSignup>,
-    @InjectRepository(GoogleUser) private readonly googleUserRepo: Repository<GoogleUser>,
+    @InjectRepository(UserSignup)
+    private readonly userRepo: Repository<UserSignup>,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService
+    private readonly mailerService: MailerService,
   ) {}
 
   async getTokens(role: string, id: string, email: string) {
@@ -64,11 +62,11 @@ export class UserService {
 
     return {
       access_token: at,
-      refresh_token: rt
-    }
+      refresh_token: rt,
+    };
   }
-  
-  async getTokensWithoutRoles( id: string, email: string) {
+
+  async getTokensWithoutRoles(id: string, email: string) {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(
         {
@@ -95,11 +93,11 @@ export class UserService {
 
     return {
       access_token: at,
-      refresh_token: rt
-    }
+      refresh_token: rt,
+    };
   }
 
-   async myCustomToken() {
+  async myCustomToken() {
     const token = () => {
       const generateToken = () => {
         const tokenKey =
@@ -135,38 +133,39 @@ export class UserService {
     return token();
   }
   //THE ABOVE ARE HELPER
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+  /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
+  async findUserByEmail(email: string) {
+    const user = await this.userRepo.findOne({ where: { email } });
+    return user;
+  }
 
-  async signup(thisUser: SignupDto) {
-    const { password, email } = thisUser;
+  async signup(thisUser: Partial<SignupDto>) {
+    const { password, email, role, secretKey, username } = thisUser;
 
-    const exist = await this.userRepo.findOne({ where: { email } });
-
-    if (exist) {
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (user) {
       throw new HttpException(`User already exist`, HttpStatus.BAD_REQUEST);
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-    const createUser = this.userRepo.create({
-      password: hashPassword,
-      email
-    })
+    const newUser = await UserRoles(
+      this.userRepo,
+      role,
+      secretKey,
+      hashPassword,
+      email,
+      username,
+    );
 
-    const saveUser = await this.userRepo.save(createUser)
-    delete saveUser.password
-
-    return saveUser
-
-
-
+    return newUser;
   }
 
   async login(userPayload: LoginDto, res: Response) {
     const { email, password } = userPayload;
 
-    const thisUser = await this.userRepo.findOne({ where: { email: email }, relations: ['userProfile'] });
+    const thisUser = await this.userRepo.findOne({ where: { email: email } });
     // console.log(thisUser)
 
     if (!thisUser) {
@@ -180,8 +179,10 @@ export class UserService {
     }
 
     if (!thisUser.userProfile) {
-    
-      const jwtTokenWithoutRole = await this.getTokensWithoutRoles(thisUser.id, thisUser.email);
+      const jwtTokenWithoutRole = await this.getTokensWithoutRoles(
+        thisUser.id,
+        thisUser.email,
+      );
 
       // const { refreshToken }: UpdateRefreshTokenDto = {
       //   refreshToken: jwtTokenWithoutRole.refresh_token,
@@ -195,79 +196,52 @@ export class UserService {
       //     secret: process.env.ACCESS_TOKEN_SECRET,
       //   }),
       // );
-      
-      
+
       res.cookie('jwt', jwtTokenWithoutRole.access_token, {
         httpOnly: true,
         maxAge: 60 * 60 * 1000,
       });
 
-     return {
-       message: `login success`,
-       jwtTokenWithoutRole,
-     };
-      
-    }
-    else {
-    
-      const jwtToken = await this.getTokens(thisUser.userProfile.role, thisUser.id, thisUser.email);
-      
+      return {
+        message: `login success`,
+        jwtTokenWithoutRole,
+      };
+    } else {
+      const jwtToken = await this.getTokens(
+        thisUser.role,
+        thisUser.id,
+        thisUser.email,
+      );
+
       //   const { refreshToken }: UpdateRefreshTokenDto = {
       //     refreshToken: jwtToken.refresh_token,
       // };
       const hashedRt = await bcrypt.hash(jwtToken.refresh_token, 12);
-        await this.userRepo.update(thisUser.id, {
-          refreshToken: hashedRt,
-        });
+      await this.userRepo.update(thisUser.id, {
+        refreshToken: hashedRt,
+      });
       console.log(
         await this.jwtService.verifyAsync(jwtToken.access_token, {
           secret: process.env.ACCESS_TOKEN_SECRET,
         }),
       );
       console.log(thisUser.refreshToken);
-      
-        res.cookie('jwt', jwtToken.access_token, {
-          httpOnly: true,
-          maxAge: 60 * 60 * 1000,
-        });
-      
-        return {
-          message: `login success`,
-          jwtToken,
-        };
-      
-    }
 
-   
-  }
+      res.cookie('jwt', jwtToken.access_token, {
+        httpOnly: true,
+        maxAge: 60 * 60 * 1000,
+      });
 
-
-  async googleSignup(userDetails: GoogleUserDto) {
-    
-    const verifyUser = await this.googleUserRepo.findOne({ where: { email: userDetails.email } })
-    if (verifyUser) return verifyUser
-    
-    const createUser = this.googleUserRepo.create(userDetails)
-     await this.googleUserRepo.save(createUser)
-
-    const thisUser = await this.googleUserRepo.findOne({ where: { email: userDetails.email }, relations: ['userProfile']})
-    
-    const payload = {
-      sub: thisUser.id,
-      email: thisUser.email
-    }
-    const token = await this.jwtService.signAsync(payload)
-
-    return {
-      message: 'login Success',
-      token
+      return {
+        message: `login success`,
+        jwtToken,
+      };
     }
   }
 
   async getAllUsers(req: Request, id: string) {
-
     const user = await this.userRepo.findOne({ where: { id } });
-    console.log(user.email)
+    console.log(user.email);
     const cookie = req.cookies['jwt'];
     if (!cookie) {
       throw new UnauthorizedException();
@@ -304,25 +278,20 @@ export class UserService {
     const verifyJwt = await this.jwtService.verifyAsync(cookie, {
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
-    const userId = verifyJwt.id
-    
+    const userId = verifyJwt.id;
+
     // console.log(verifyJwt)
     // if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {
     //   // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
     //   throw new UnauthorizedException(`Only admins can access this resource`);
     // }
 
-
-    const authorizedUser = await this.userRepo.findOne({
+    const user = await this.userRepo.findOne({
       where: { id: userId },
-      relations: ['userProfile'],
     });
 
-    const userRole = authorizedUser.userProfile.role;
-    if (!authorizedUser) {
-      throw new HttpException(`User not Found`, HttpStatus.NOT_FOUND);
-    }
-    
+    const userRole = user.role;
+
     if (userRole !== 'admin') {
       throw new UnauthorizedException(`Only admins can access this resource`);
     }
@@ -370,23 +339,22 @@ export class UserService {
     });
 
     return updatedUser.toResponseObj();
-    
   }
 
   async logout(userId: string) {
     await this.userRepo.update(userId, {
-      refreshToken: null
-    })
+      refreshToken: null,
+    });
 
     return {
-      message: 'Logged out'
+      message: 'Logged out',
     };
   }
 
   async forgotPassword(details: ForgotPasswordDto) {
     const { email } = details;
     const userInfo = await this.userRepo.findOne({
-      where: { email }
+      where: { email },
     });
     if (!userInfo) {
       throw new HttpException(`Incorrect email`, HttpStatus.BAD_REQUEST);
@@ -399,12 +367,11 @@ export class UserService {
       email: userInfo.email,
     };
 
-
     const token = await this.jwtService.signAsync(payload, {
       secret: process.env.FORGOT_PASSWORD_SECRET,
       expiresIn: process.env.FORGOT_PASSWORD_EXPIRES_IN,
     });
-    
+
     // const myToken = await this.myCustomToken()
     const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
     try {
@@ -422,8 +389,8 @@ export class UserService {
     console.log(link);
     console.log(userInfo.email);
     return {
-      message : `Link has been sent to your email`
-  };
+      message: `Link has been sent to your email`,
+    };
   }
 
   async resetPassword(
@@ -459,8 +426,7 @@ export class UserService {
       delete thisUser.password;
       return thisUser;
     } catch (error) {
-      return error
+      return error;
     }
-    
   }
 }
