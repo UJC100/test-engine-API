@@ -18,6 +18,7 @@ export class UserSignup extends BaseEntity {
   @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, {
     onDelete: 'SET NULL',
   })
+  @JoinColumn()
   userProfile?: UserProfile;
 
   toResponseObj() {

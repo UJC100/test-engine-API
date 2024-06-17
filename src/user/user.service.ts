@@ -18,6 +18,7 @@ import { ResetPasswordDto } from 'src/dto/resetPassword.dto';
 import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { GoogleUser } from 'src/entities/google.entity';
 import { UpdateRefreshTokenDto } from 'src/dto/update.refreshToken';
+import { resolve } from 'path';
 
 
 
@@ -96,6 +97,42 @@ export class UserService {
       access_token: at,
       refresh_token: rt
     }
+  }
+
+   async myCustomToken() {
+    const token = () => {
+      const generateToken = () => {
+        const tokenKey =
+          '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        const tokenlen = 6;
+        let generatedToken = '';
+
+        for (let i = 0; i < tokenlen; i++) {
+          generatedToken +=
+            tokenKey[Math.floor(Math.random() * tokenKey.length)];
+        }
+        return generatedToken;
+      };
+
+      return new Promise((resolve, reject) => {
+        let start = 30;
+        let stop = 0;
+        let timer = setInterval(() => {
+          if (start === stop) {
+            clearInterval(timer);
+            return {
+              message: 'Token expired',
+            };
+          } else {
+            start--;
+          }
+        }, 1000);
+
+        resolve(generateToken());
+      });
+    };
+
+    return token();
   }
   //THE ABOVE ARE HELPER
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
@@ -362,12 +399,14 @@ export class UserService {
       email: userInfo.email,
     };
 
-    const expiration = {
-      expiresIn: '5m',
-    };
 
-    const token = await this.jwtService.signAsync(payload, expiration);
-    const link = `http://localhost:2021/thisUser/resetPassword/${userId}/${token}`;
+    const token = await this.jwtService.signAsync(payload, {
+      secret: process.env.FORGOT_PASSWORD_SECRET,
+      expiresIn: process.env.FORGOT_PASSWORD_EXPIRES_IN,
+    });
+    
+    // const myToken = await this.myCustomToken()
+    const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
     try {
       await this.mailerService.sendMail({
         to: `${userInfo.email}`,
@@ -381,7 +420,10 @@ export class UserService {
     }
 
     console.log(link);
-    return `Link has been sent to email`;
+    console.log(userInfo.email);
+    return {
+      message : `Link has been sent to your email`
+  };
   }
 
   async resetPassword(
@@ -390,25 +432,35 @@ export class UserService {
     token: string,
   ) {
     const thisUser = await this.userRepo.findOne({ where: { id: userId } });
-    if (!thisUser) {
-      throw new HttpException(`No thisUser found`, HttpStatus.NOT_FOUND);
+    try {
+      if (!thisUser) {
+        throw new HttpException(`No thisUser found`, HttpStatus.NOT_FOUND);
+      }
+      //  const secret = process.env.JWT_ENCODE +
+
+      // const secret = process.env
+      await this.jwtService.verifyAsync(token, {
+        secret: process.env.FORGOT_PASSWORD_SECRET,
+      });
+
+      const { password, confirmPassword } = details;
+
+      if (password !== confirmPassword) {
+        throw new HttpException(
+          `Passwords don't Match`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      thisUser.password = hashedPassword;
+
+      await this.userRepo.save(thisUser);
+      delete thisUser.password;
+      return thisUser;
+    } catch (error) {
+      return error
     }
-    //  const secret = process.env.JWT_ENCODE +
-
-    // const secret = process.env
-    await this.jwtService.verifyAsync(token);
-
-    const { password, confirmPassword } = details;
-
-    if (password !== confirmPassword) {
-      throw new HttpException(`Passwords don't Match`, HttpStatus.BAD_REQUEST);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-    thisUser.password = hashedPassword;
-
-    await this.userRepo.save(thisUser);
-    delete thisUser.password;
-    return thisUser;
+    
   }
 }

@@ -24,7 +24,7 @@ export class QuizController {
   @Get('getQuiz/:week')
   @UseGuards(JwtAuthGuard)
   async getWeeklyQuiz(@User('id') userId: string, @Param('week') week: string) {
-    const weekUrl = week.replace(/\+/g, ' '); // FOR ENTERING INPUTS WITH SPACES. eg "week 1"
+    const weekUrl = week.replace(/\+/g, ' '); // FOR ENTERING INPUTS WITH SPACES. eg "week+1 will become week 1"
     return await this.quizService.getWeeklyQuiz(userId, weekUrl);
   }
 

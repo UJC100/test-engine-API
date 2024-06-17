@@ -28,7 +28,6 @@ export class UserProfile extends BaseEntity {
   @OneToOne(() => UserSignup, (userSignup) => userSignup.userProfile, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
   signupDetails: UserSignup;
 
   @OneToOne(() => GoogleUser, (googleUser) => googleUser.userProfile)

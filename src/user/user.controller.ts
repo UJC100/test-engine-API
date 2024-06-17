@@ -68,19 +68,21 @@ export class UserController {
   async logOut(@User('id') userId: string, @Res() res: Response) {
     await this.userService.logout(userId);
     res.clearCookie('jwt', {
-      httpOnly: true
-    })
+      httpOnly: true,
+    });
     return res.status(HttpStatus.OK).json({
-      message: 'Logged out'
-    })
+      message: 'Logged out',
+    });
   }
 
   @Post('forgotPassword')
+  @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() payload: ForgotPasswordDto) {
     return await this.userService.forgotPassword(payload);
   }
 
   @Post('resetPassword/:userId/:token')
+  @HttpCode(HttpStatus.OK)
   async resetPassword(
     @Body() payload: ResetPasswordDto,
     @Param('userId') userId: string,

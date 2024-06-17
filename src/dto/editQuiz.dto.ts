@@ -1,15 +1,15 @@
-import { IsNotEmpty, IsString, IsArray } from "class-validator";
+import { IsNotEmpty, IsString, IsArray, IsOptional } from "class-validator";
 
 export class EditQuizDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   question: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsArray()
   options: string[];
-
-  @IsNotEmpty()
+  
+  @IsOptional()
   @IsString()
   correctAnswer: string;
 }
