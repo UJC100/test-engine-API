@@ -38,7 +38,6 @@ export class UpdateLoginDetailsDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   newPassword: string;
 
   //   @IsOptional()

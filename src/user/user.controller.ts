@@ -12,7 +12,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
 import { UserService } from './user.service';
 import { SignupDto } from './dto/user-dto';
 import { LoginDto } from './dto/user-dto';
@@ -55,11 +55,12 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('allUsers')
-  async getAllUsers(@Req() req: Request, @User('id') id: string) {
-    return await this.userService.getAllUsers(req, id);
+  async getAllUsers(@Req() req: Request) {
+    return await this.userService.getAllUsers(req);
   }
 
   @Get('fetchUser/:id')
+  @UseGuards(JwtAuthGuard)
   async getOneUser(@Param('id') id: string, @Req() req: Request) {
     return this.userService.getOneUser(id, req);
   }
@@ -67,7 +68,7 @@ export class UserController {
   @Patch('updateLogin')
   async updateUserLogin(
     @Body() userPayload: UpdateLoginDetailsDto,
-    @Req() req: Request,
+    @Req() req,
   ) {
     return await this.userService.updateLoginDetails(userPayload, req);
   }

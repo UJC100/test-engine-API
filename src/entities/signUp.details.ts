@@ -17,7 +17,7 @@ export class UserSignup extends BaseEntity {
   @Column({ nullable: true })
   username: string;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, default: false })
   isGoogle: boolean;
 
   @Column({

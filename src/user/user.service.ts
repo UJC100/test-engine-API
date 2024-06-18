@@ -239,29 +239,18 @@ export class UserService {
     }
   }
 
-  async getAllUsers(req: Request, id: string) {
+  async getAllUsers(req: Request) {
+    const id = req.user["id"]
     const user = await this.userRepo.findOne({ where: { id } });
-    console.log(user.email);
-    const cookie = req.cookies['jwt'];
-    if (!cookie) {
-      throw new UnauthorizedException();
-    }
-    // console.log(req.cookies)
-    const verify = await this.jwtService.verifyAsync(cookie, {
-      secret: process.env.ACCESS_TOKEN_SECRET,
-    });
+    console.log(user)
 
-    if (!verify || verify.role !== 'admin') {
+    if (!user || user.role !== 'admin') {
       throw new UnauthorizedException(`Only admins can access this resource`);
     }
 
-    console.log(verify);
     const users = await this.userRepo.find({ relations: ['userProfile'] });
-
-     users.map((thisUser) => {
-      return {
-        thisUser // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
-      };
+    users.map((allUsers) => {
+      return allUsers // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
     });
 
     return users;
@@ -269,22 +258,7 @@ export class UserService {
 
   async getOneUser(id: string, req: Request) {
     // try {
-    const cookie = req.cookies['jwt'];
-
-    if (!cookie) {
-      throw new UnauthorizedException();
-    }
-
-    const verifyJwt = await this.jwtService.verifyAsync(cookie, {
-      secret: process.env.ACCESS_TOKEN_SECRET,
-    });
-    const userId = verifyJwt.id;
-
-    // console.log(verifyJwt)
-    // if (verifyJwt.role !== 'admin' && verifyJwt.role !== 'tutor') {
-    //   // ADD ADDITIOMAL LOGIC HERE WHEN YOU IMPLEMENT USER PROFILE
-    //   throw new UnauthorizedException(`Only admins can access this resource`);
-    // }
+    const userId = req.user["id"]
 
     const user = await this.userRepo.findOne({
       where: { id: userId },
@@ -309,15 +283,9 @@ export class UserService {
 
   async updateLoginDetails(userPayload: UpdateLoginDetailsDto, req: Request) {
     const { password, ...rest } = userPayload;
-    const cookie = req.cookies['jwt'];
-    if (!cookie) {
-      throw new UnauthorizedException();
-    }
-    const verify = await this.jwtService.verifyAsync(cookie, {
-      secret: process.env.ACCESS_TOKEN_SECRET,
-    });
-
-    const thisUser = await this.userRepo.findOne({ where: { id: verify.id } });
+ 
+    const userId = req.user["id"]
+    const thisUser = await this.userRepo.findOne({ where: { id: userId } });
 
     if (!thisUser) {
       throw new UnauthorizedException(`no try am`);
