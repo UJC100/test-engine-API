@@ -183,21 +183,12 @@ export class UserService {
         thisUser.id,
         thisUser.email,
       );
-
-      // const { refreshToken }: UpdateRefreshTokenDto = {
-      //   refreshToken: jwtTokenWithoutRole.refresh_token,
-      // };
       const hashedRt = await bcrypt.hash(jwtTokenWithoutRole.refresh_token, 12);
       await this.userRepo.update(thisUser.id, {
         refreshToken: hashedRt,
       });
-      // console.log(
-      //   await this.jwtService.verifyAsync(jwtTokenWithoutRole.access_token, {
-      //     secret: process.env.ACCESS_TOKEN_SECRET,
-      //   }),
-      // );
 
-      res.cookie('jwt', jwtTokenWithoutRole.access_token, {
+      res.cookie('jwt', jwtTokenWithoutRole.refresh_token, {
         httpOnly: true,
         maxAge: 60 * 60 * 1000,
       });
@@ -227,7 +218,7 @@ export class UserService {
       );
       console.log(thisUser.refreshToken);
 
-      res.cookie('jwt', jwtToken.access_token, {
+      res.cookie('jwt', jwtToken.refresh_token, {
         httpOnly: true,
         maxAge: 60 * 60 * 1000,
       });
@@ -396,5 +387,31 @@ export class UserService {
     } catch (error) {
       return error;
     }
+  }
+
+  async refreshToken(req: Request) {
+    const refreshToken = req.cookies['jwt']
+    const decodeRfToken = await this.jwtService.verifyAsync(refreshToken, {
+      secret: process.env.REFRESH_TOKEN_SECRET,
+    });
+    
+    const user = await this.userRepo.findOne({ where: { id: decodeRfToken.id } });
+    if(!user) throw new HttpException(`Forbidden`, 403);
+    const refreshTokenFromDB = user.refreshToken
+    const decrypt = await bcrypt.compare(refreshToken, refreshTokenFromDB)
+    if (!decrypt) throw new HttpException(`Forbidden`, 403)
+  
+    const payload = {
+            id: user.id,
+            email: user.email,
+            role: user.role      
+    }
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+    });
+    return {accessToken}
+    // if (user.id !== checkJwtAuth.id) throw new HttpException(`Forbidden`, 403)
+  
   }
 }

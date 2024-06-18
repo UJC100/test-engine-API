@@ -22,7 +22,6 @@ import { ResetPasswordDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
 // import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { User } from '../custome-decorators/user.decorator';
-import { Http2ServerRequest } from 'http2';
 
 @Controller('user')
 export class UserController {
@@ -102,5 +101,10 @@ export class UserController {
     console.log(userId, token);
 
     return await this.userService.resetPassword(payload, userId, token);
+  }
+
+  @Get('refreshToken')
+  async refreshToken(@Req() req: Request) {
+    return await this.userService.refreshToken(req)
   }
 }
