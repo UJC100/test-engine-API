@@ -140,8 +140,8 @@ export class UserService {
     return user;
   }
 
-  async signup(thisUser: Partial<SignupDto>) {
-    const { password, email, role, secretKey, username } = thisUser;
+  async signup(payload: Partial<SignupDto>) {
+    const { password, email, role, secretKey, username } = payload;
 
     const user = await this.userRepo.findOne({ where: { email } });
     if (user) {
