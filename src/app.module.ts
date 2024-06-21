@@ -5,9 +5,10 @@ import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { UserProfileModule } from './user-profile/user-profile.module';
 import { QuizModule } from './quiz/quiz.module';
+import { RedisCacheModule } from './cache/cache.module';
 
 @Module({
-  imports: [
+  imports: [ 
     ConfigModule.forRoot({
       isGlobal: true
     }),
@@ -20,7 +21,7 @@ import { QuizModule } from './quiz/quiz.module';
         }
       }
     }),
-    DatabaseModule, UserModule, UserProfileModule, QuizModule],
+    DatabaseModule, UserModule, UserProfileModule, QuizModule, RedisCacheModule],
   controllers: [],
   providers: [],
 })
