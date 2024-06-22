@@ -12,17 +12,16 @@ import * as bcrypt from 'bcrypt';
 import { Role } from 'src/enum/role';
 import { ProfileDto } from 'src/user-profile/dto/profile.dto';
 import { LoginDto } from './dto/user-dto';
-import { verify } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
-import { Console } from 'console';
 import { UpdateLoginDetailsDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ResetPasswordDto } from './dto/user-dto';
 import { UpdateRefreshTokenDto } from './dto/user-dto';
-import { resolve } from 'path';
 import { UserRoles } from 'src/helperFunctions/userRoles';
+// import { RedisCache } from 'src/helperFunctions/redis';
+import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class UserService {
@@ -31,6 +30,7 @@ export class UserService {
     private readonly userRepo: Repository<UserSignup>,
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
+    private readonly redisChache: CacheService,
   ) {}
 
   async getTokens(role: string, id: string, email: string) {
@@ -231,9 +231,13 @@ export class UserService {
   }
 
   async getAllUsers(req: Request) {
-    const id = req.user["id"]
+    const id = req.user['id'];
+    const cachedItem = await this.redisChache.getCache(id)
+    if (cachedItem) {
+      return cachedItem
+    }
     const user = await this.userRepo.findOne({ where: { id } });
-    console.log(user)
+    console.log(user);
 
     if (!user || user.role !== 'admin') {
       throw new UnauthorizedException(`Only admins can access this resource`);
@@ -241,15 +245,16 @@ export class UserService {
 
     const users = await this.userRepo.find({ relations: ['userProfile'] });
     users.map((allUsers) => {
-      return allUsers // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
+      return allUsers; // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
     });
+    await this.redisChache.setCache(id, users)
 
     return users;
   }
 
   async getOneUser(id: string, req: Request) {
     // try {
-    const userId = req.user["id"]
+    const userId = req.user['id'];
 
     const user = await this.userRepo.findOne({
       where: { id: userId },
@@ -274,8 +279,8 @@ export class UserService {
 
   async updateLoginDetails(userPayload: UpdateLoginDetailsDto, req: Request) {
     const { password, ...rest } = userPayload;
- 
-    const userId = req.user["id"]
+
+    const userId = req.user['id'];
     const thisUser = await this.userRepo.findOne({ where: { id: userId } });
 
     if (!thisUser) {
@@ -390,28 +395,29 @@ export class UserService {
   }
 
   async refreshToken(req: Request) {
-    const refreshToken = req.cookies['jwt']
+    const refreshToken = req.cookies['jwt'];
     const decodeRfToken = await this.jwtService.verifyAsync(refreshToken, {
       secret: process.env.REFRESH_TOKEN_SECRET,
     });
-    
-    const user = await this.userRepo.findOne({ where: { id: decodeRfToken.id } });
-    if(!user) throw new HttpException(`Forbidden`, 403);
-    const refreshTokenFromDB = user.refreshToken
-    const decrypt = await bcrypt.compare(refreshToken, refreshTokenFromDB)
-    if (!decrypt) throw new HttpException(`Forbidden`, 403)
-  
+
+    const user = await this.userRepo.findOne({
+      where: { id: decodeRfToken.id },
+    });
+    if (!user) throw new HttpException(`Forbidden`, 403);
+    const refreshTokenFromDB = user.refreshToken;
+    const decrypt = await bcrypt.compare(refreshToken, refreshTokenFromDB);
+    if (!decrypt) throw new HttpException(`Forbidden`, 403);
+
     const payload = {
-            id: user.id,
-            email: user.email,
-            role: user.role      
-    }
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.ACCESS_TOKEN_SECRET,
     });
-    return {accessToken}
+    return { accessToken };
     // if (user.id !== checkJwtAuth.id) throw new HttpException(`Forbidden`, 403)
-  
   }
 }

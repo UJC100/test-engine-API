@@ -10,6 +10,9 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtSrategy } from '../jwt-auth/jwt.strategy';
 import { GoogleStrategy } from 'src/googleAuth/googleStrategy';
 import { GoogleUserController } from './google.user.controller';
+import { RedisCache } from 'src/helperFunctions/redis';
+import { CacheService } from 'src/cache/cache.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 // import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({
@@ -23,7 +26,7 @@ import { GoogleUserController } from './google.user.controller';
     TypeOrmModule.forFeature([UserSignup, UserProfile]),
     PassportModule,
   ],
-  providers: [UserService, JwtSrategy, GoogleStrategy],
-  controllers: [UserController, GoogleUserController],
+  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService],
+  controllers: [UserController, GoogleUserController]
 })
 export class UserModule {}
