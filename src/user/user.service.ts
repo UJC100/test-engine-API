@@ -232,12 +232,13 @@ export class UserService {
 
   async getAllUsers(req: Request) {
     const id = req.user['id'];
-    const cachedItem = await this.redisChache.getCache(id)
+    const redisKeyName = `GetAllUsers:${id}`
+    const cachedItem = await this.redisChache.getCache(redisKeyName)
     if (cachedItem) {
       return cachedItem
     }
     const user = await this.userRepo.findOne({ where: { id } });
-    console.log(user);
+    // console.log(user);
 
     if (!user || user.role !== 'admin') {
       throw new UnauthorizedException(`Only admins can access this resource`);
@@ -247,7 +248,7 @@ export class UserService {
     users.map((allUsers) => {
       return allUsers; // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
     });
-    await this.redisChache.setCache(id, users)
+    await this.redisChache.setCache(redisKeyName, users)
 
     return users;
   }

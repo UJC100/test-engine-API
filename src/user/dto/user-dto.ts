@@ -14,7 +14,8 @@ export class SignupDto {
   username: string;
 
   @IsString()
-  role: string
+  @IsOptional()
+  role: string;
 
   @IsString()
   @IsOptional()
