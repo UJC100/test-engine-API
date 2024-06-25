@@ -6,6 +6,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { UserProfileModule } from './user-profile/user-profile.module';
 import { QuizModule } from './quiz/quiz.module';
 import { RedisCacheModule } from './cache/cache.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [ 
@@ -21,7 +22,7 @@ import { RedisCacheModule } from './cache/cache.module';
         }
       }
     }),
-    DatabaseModule, UserModule, UserProfileModule, QuizModule, RedisCacheModule],
+    DatabaseModule, UserModule, UserProfileModule, QuizModule, RedisCacheModule, MailModule],
   controllers: [],
   providers: [],
 })

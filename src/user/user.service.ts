@@ -246,7 +246,7 @@ export class UserService {
 
     const users = await this.userRepo.find({ relations: ['userProfile'] });
     users.map((allUsers) => {
-      return allUsers; // ADD ADITIONAL LOGIC LIKE THE RESPONSE OBJECT
+      return allUsers;
     });
     await this.redisChache.setCache(redisKeyName, users)
 
