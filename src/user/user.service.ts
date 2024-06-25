@@ -22,6 +22,8 @@ import { UpdateRefreshTokenDto } from './dto/user-dto';
 import { UserRoles } from 'src/helperFunctions/userRoles';
 // import { RedisCache } from 'src/helperFunctions/redis';
 import { CacheService } from 'src/cache/cache.service';
+import { OtpService } from 'src/otp/otp.service';
+import { OtpType } from 'src/enum/otp';
 
 @Injectable()
 export class UserService {
@@ -31,6 +33,7 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly redisChache: CacheService,
+    private readonly otpService: OtpService
   ) {}
 
   async getTokens(role: string, id: string, email: string) {
@@ -159,6 +162,11 @@ export class UserService {
       username,
     );
 
+    await this.otpService.sendOtp({
+      email,
+      username,
+      type: OtpType.VERIFY_EMAIL
+      })
     return newUser;
   }
 

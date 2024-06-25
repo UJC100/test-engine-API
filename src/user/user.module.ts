@@ -13,6 +13,7 @@ import { GoogleUserController } from './google.user.controller';
 import { RedisCache } from 'src/helperFunctions/redis';
 import { CacheService } from 'src/cache/cache.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { OtpModule } from 'src/otp/otp.module';
 // import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({
@@ -25,8 +26,10 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
     }),
     TypeOrmModule.forFeature([UserSignup, UserProfile]),
     PassportModule,
+    OtpModule
   ],
   providers: [UserService, JwtSrategy, GoogleStrategy, CacheService],
-  controllers: [UserController, GoogleUserController]
+  controllers: [UserController, GoogleUserController],
+  exports: [UserService]
 })
 export class UserModule {}
