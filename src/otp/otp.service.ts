@@ -1,4 +1,4 @@
-import { Inject, Injectable, InternalServerErrorException, OnModuleInit, forwardRef } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable, InternalServerErrorException, OnModuleInit, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Otp } from './otpEntity/otp-entity';
 import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
@@ -33,11 +33,15 @@ export class OtpService {
         if (!otpRecords) {
             const newRecords = this.otpRepo.create(payload)
             await this.otpRepo.save(newRecords)
+            const newOtp = await this.otpRepo.findOne({ where: { email: payload.email } });
+            await this.deleteOtp(newOtp.id)
             return newRecords
         }
         await this.otpRepo.update(otpRecords.email, payload);
+        const updatedOtp = await this.otpRepo.findOne({ where: { email: payload.email } });
+        await this.deleteOtp(updatedOtp.id)
         
-        return await this.otpRepo.findOne({ where: { email: payload.email } });
+        return updatedOtp
     }
 
     async sendOtp(payload: SendOtpDto) {
@@ -60,6 +64,27 @@ export class OtpService {
         if (!otp) throw new InternalServerErrorException(`Unable to generate otp. Please try again later`)
         
         await this.mailService.sendMail(email, template)
+    }
+
+    async deleteOtp(id: string) {
+        setTimeout(async () => {
+               try {
+                  const otp = await this.otpRepo.findOne({
+                    where: { id },
+                  });
+                  if (!otp)
+                    throw new HttpException(
+                      'Otp not found',
+                      HttpStatus.NOT_FOUND,
+                    );
+
+                  await this.otpRepo.delete(id);
+                  console.log(`${otp.code} was deleted`);
+               } catch (error) {
+                console.error(`Error deleting OTP for ${id}:`, error);
+               }
+           
+           }, 60000);
     }
     
 }
