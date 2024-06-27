@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { OtpService } from './otp.service';
 import { VerifyOtpDto } from './otpDto/otp-dto';
 
@@ -9,6 +9,11 @@ export class OtpController {
     @Post('verify')
     async verifyOtp(@Body() code: VerifyOtpDto) {
         return await this.otpService.verifyOtp(code)
+    }
+
+    @Get('resendOtp/:id')
+    async resendOtp(@Param('id') id: string) {
+        return await this.otpService.resendOtp(id)
     }
 
 }

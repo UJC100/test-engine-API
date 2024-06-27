@@ -33,16 +33,18 @@ export class OtpService {
 
     async createOtp(payload: CreateOtpDto) {
         const otpRecords = await this.otpRepo.findOne({ where: { email: payload.email } });
+       
         if (!otpRecords) {
             const newRecords = this.otpRepo.create(payload)
             await this.otpRepo.save(newRecords)
-            const newOtp = await this.otpRepo.findOne({ where: { email: payload.email } });
-            await this.deleteOtp(newOtp.id)
+             const newOtp = await this.otpRepo.findOne({ where: { email: payload.email } });
+            await this.deleteOtp(newOtp.id, 'set')
             return newRecords
         }
-        await this.otpRepo.update(otpRecords.email, payload);
+        await this.deleteOtp(otpRecords.id, 'clear')
+        await this.otpRepo.update(otpRecords.id, payload);
         const updatedOtp = await this.otpRepo.findOne({ where: { email: payload.email } });
-        await this.deleteOtp(updatedOtp.id)
+        await this.deleteOtp(updatedOtp.id, 'new')
         
         return updatedOtp
     }
@@ -69,25 +71,33 @@ export class OtpService {
         await this.mailService.sendMail(email, template)
     }
 
-    async deleteOtp(id: string) {
-        setTimeout(async () => {
-               try {
-                  const otp = await this.otpRepo.findOne({
-                    where: { id },
-                  });
-                  if (!otp)
-                    throw new HttpException(
-                      'Otp not found',
-                      HttpStatus.NOT_FOUND,
-                    );
+    async deleteOtp(id: string, query: string) {
 
-                  await this.otpRepo.delete(id);
-                  console.log(`${otp.code} was deleted`);
-               } catch (error) {
+        let timerId: any;
+        if (query === 'set') {
+             timerId = setTimeout(async () => {
+              try {
+                const otp = await this.otpRepo.findOne({
+                  where: { id },
+                });
+                if (!otp)
+                  throw new HttpException(
+                    'Otp not found',
+                    HttpStatus.NOT_FOUND,
+                  );
+
+                await this.otpRepo.delete(id);
+                console.log(`${otp.code} was deleted`);
+              } catch (error) {
                 console.error(`Error deleting OTP for ${id}:`, error);
-               }
-           
-           }, 60000);
+              }
+            }, 60000);
+            return timerId;
+        } else if (query === 'clear') {
+            clearTimeout(timerId)
+            console.log(`Timer was restarted`)
+        }
+        
     }
     
 
@@ -102,6 +112,22 @@ export class OtpService {
             return tempUser
         }
         return 'Invalid otp'
+    }
+
+    async resendOtp(id: string) {
+        const userInTempDb = await this.tempUserRepo.findOne({ where: { id } });
+        if (!userInTempDb) throw new HttpException('Resource not found', HttpStatus.NOT_FOUND)
+        
+        await this.sendOtp({
+            username: userInTempDb.username,
+            email: userInTempDb.email,
+            type: OtpType.VERIFY_EMAIL
+        })
+
+        return {
+            message: `New otp has been sent to ${userInTempDb.email}`
+        }
+        
     }
 }
 
