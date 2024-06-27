@@ -9,6 +9,7 @@ import { RedisCacheModule } from './cache/cache.module';
 import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
 import { join } from 'path';
+import { TemporaryUserModule } from './temporary-user/temporary-user.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { join } from 'path';
     RedisCacheModule,
     MailModule,
     OtpModule,
+    TemporaryUserModule,
   ],
   controllers: [],
   providers: [],

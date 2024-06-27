@@ -1,8 +1,10 @@
 import {
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SignupDto } from 'src/user/dto/user-dto';
@@ -33,7 +35,7 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly redisChache: CacheService,
-    private readonly otpService: OtpService
+    
   ) {}
 
   async getTokens(role: string, id: string, email: string) {
@@ -143,31 +145,10 @@ export class UserService {
     return user;
   }
 
-  async signup(payload: Partial<SignupDto>) {
-    const { password, email, role, secretKey, username } = payload;
-
-    const user = await this.userRepo.findOne({ where: { email } });
-    if (user) {
-      throw new HttpException(`User already exist`, HttpStatus.BAD_REQUEST);
-    }
-
-    const hashPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await UserRoles(
-      this.userRepo,
-      role,
-      secretKey,
-      hashPassword,
-      email,
-      username,
-    );
-
-    await this.otpService.sendOtp({
-      email,
-      username,
-      type: OtpType.VERIFY_EMAIL
-      })
-    return newUser;
+  async signup(payload: any) {
+    const user = this.userRepo.create(payload)
+    await this.userRepo.save(user)
+    return user
   }
 
   async login(userPayload: LoginDto, res: Response) {

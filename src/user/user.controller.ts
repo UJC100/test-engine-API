@@ -27,11 +27,6 @@ import { User } from '../custome-decorators/user.decorator';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('signup')
-  async signup(@Body() payload: SignupDto) {
-    return await this.userService.signup(payload);
-  }
-
   @Post('signin')
   @HttpCode(HttpStatus.OK)
   async signin(

@@ -23,3 +23,8 @@ export class SendOtpDto {
   @IsString()
   username: string;
 }
+
+export class VerifyOtpDto {
+  @IsNumber()
+  code: number
+}

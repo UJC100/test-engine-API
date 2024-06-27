@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -26,7 +26,7 @@ import { OtpModule } from 'src/otp/otp.module';
     }),
     TypeOrmModule.forFeature([UserSignup, UserProfile]),
     PassportModule,
-    OtpModule
+   forwardRef(() => OtpModule)
   ],
   providers: [UserService, JwtSrategy, GoogleStrategy, CacheService],
   controllers: [UserController, GoogleUserController],

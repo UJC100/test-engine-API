@@ -3,27 +3,30 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Otp } from './otpEntity/otp-entity';
 import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
 import * as cron from 'node-cron';
-import { CreateOtpDto, SendOtpDto } from './otpDto/otp-dto';
+import { CreateOtpDto, SendOtpDto, VerifyOtpDto } from './otpDto/otp-dto';
 import { BaseHelper } from 'src/helperFunctions/otpToken';
 import { OtpType } from 'src/enum/otp';
 import { VerifyEmailTemplate } from 'src/mail/templates/verify-email';
 import { MailService } from 'src/mail/mail.service';
 import { UserService } from 'src/user/user.service';
-import { UserSignup } from 'src/entities/signUp.details';
+import { TemporaryUserTable, UserSignup } from 'src/entities/signUp.details';
 
 @Injectable()
 export class OtpService {
     constructor(
         @InjectRepository(Otp) private readonly otpRepo: Repository<Otp>,
-        private readonly mailService: MailService,
-        @InjectRepository(UserSignup) private readonly userService: Repository<UserSignup>
+        @InjectRepository(UserSignup) private readonly userRepo: Repository<UserSignup>,
+        @InjectRepository(TemporaryUserTable) private readonly tempUserRepo: Repository<TemporaryUserTable>,
+        @Inject(forwardRef(() => UserService))
+        private readonly userService: UserService,
+        private readonly mailService: MailService
     ) { }
 
 
 
 
     async getUsersName(email: string) {
-        const user = await this.userService.findOne({ where: { email } })
+        const user = await this.userRepo.findOne({ where: { email } })
         return user.username
     }
 
@@ -87,18 +90,19 @@ export class OtpService {
            }, 60000);
     }
     
-}
 
-
-export class CleanUpService implements OnModuleInit{
-    constructor(@InjectRepository(Otp) private readonly otpRepo: Repository<Otp>) { }
-    
-    onModuleInit() {
-        cron.schedule('*/5****', async () => {
-            const expirationDate = new Date(Date.now() - 300 * 1000);
-            await this.otpRepo.delete({
-                createdAt: LessThanOrEqual(expirationDate)
-            })
-        })
+    async verifyOtp(payload: VerifyOtpDto) {
+        const otp = await this.otpRepo.findOne({ where: { code: payload.code } });
+        if (!otp) throw new HttpException('Invalid or expired otp', HttpStatus.NOT_FOUND)
+        
+        const tempUser = await this.tempUserRepo.findOne({ where: { email: otp.email } });
+        if (tempUser) {
+            await this.tempUserRepo.delete(tempUser.id)
+            await this.userService.signup(tempUser)
+            return tempUser
+        }
+        return 'Invalid otp'
     }
 }
+
+
