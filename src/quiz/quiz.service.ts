@@ -12,6 +12,8 @@ import { QuizEntity } from 'src/entities/quiz.entity';
 import { UserSignup } from 'src/entities/signUp.details';
 import { UserProfile } from 'src/entities/user.profile.entity';
 import { Repository } from 'typeorm';
+import { CacheService } from 'src/cache/cache.service';
+import { getCachedQuiz } from 'src/helperFunctions/redis';
 
 @Injectable()
 export class QuizService {
@@ -22,6 +24,7 @@ export class QuizService {
     private readonly userRepo: Repository<UserSignup>,
     @InjectRepository(UserProfile)
     private readonly userProfileRepo: Repository<UserProfile>,
+    private readonly redisCache: CacheService
   ) {}
 
   async setQuiz(userId: string, payload: QuizDto) {
@@ -53,6 +56,8 @@ export class QuizService {
       where: { id: userId },
     });
     const userCourse = user.userProfile.course.toLowerCase();
+    const redisKeyName = `GetAllQuiz:${userId}`;
+    await getCachedQuiz(this.redisCache, redisKeyName)
 
     const quizes = await this.quizRepo.find();
      quizes.map((quizes) => {
@@ -65,6 +70,8 @@ export class QuizService {
         return quizes  
       }
      });
+    
+    await this.redisCache.setCache(redisKeyName, quizes)
     
     return quizes
   }
@@ -82,11 +89,14 @@ export class QuizService {
     }
     const userCourse = user.userProfile.course.toLowerCase();
 
+    const redisKeyName = `GetWeeklyQuiz:${userId}`;
+    await getCachedQuiz(this.redisCache, redisKeyName); 
+
     const quiz = await this.quizRepo.find({ where: { week } });
 
     console.log(quiz);
 
-    const getQuiz = quiz.filter((quizes) => {
+     quiz.filter((quizes) => {
       const quizCourse = quizes.course.toLowerCase();
 
       if (!quizes) {
@@ -101,7 +111,11 @@ export class QuizService {
       if (userCourse === quizCourse) {
         return quizes;
       }
-    });
+     });
+     
+    await this.redisCache.setCache(redisKeyName, quiz)
+    
+    return quiz
     // const returnedQuiz = [];
     // getQuiz.map((items) => {
     //   if (items !== null) {

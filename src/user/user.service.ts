@@ -26,6 +26,7 @@ import { UserRoles } from 'src/helperFunctions/userRoles';
 import { CacheService } from 'src/cache/cache.service';
 import { OtpService } from 'src/otp/otp.service';
 import { OtpType } from 'src/enum/otp';
+import { getCachedQuiz } from 'src/helperFunctions/redis';
 
 @Injectable()
 export class UserService {
@@ -222,10 +223,8 @@ export class UserService {
   async getAllUsers(req: Request) {
     const id = req.user['id'];
     const redisKeyName = `GetAllUsers:${id}`
-    const cachedItem = await this.redisChache.getCache(redisKeyName)
-    if (cachedItem) {
-      return cachedItem
-    }
+    await getCachedQuiz(this.redisChache, redisKeyName);
+    
     const user = await this.userRepo.findOne({ where: { id } });
     // console.log(user);
 
@@ -256,11 +255,14 @@ export class UserService {
       throw new UnauthorizedException(`Only admins can access this resource`);
     }
 
+    const redisKeyName = `GetUser:${userId}`;
+    await getCachedQuiz(this.redisChache, redisKeyName)
     const thisUser = await this.userRepo.findOne({
       where: { id },
       relations: ['userProfile'],
     });
 
+    await this.redisChache.setCache(redisKeyName, thisUser)
     return thisUser;
     // } catch {
     //   // throw new UnauthorizedException()

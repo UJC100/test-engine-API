@@ -1,10 +1,14 @@
-import { CACHE_MANAGER } from "@nestjs/cache-manager"
-import { Inject, Injectable } from "@nestjs/common"
-import { Cache } from "cache-manager"
+import { CacheService } from "src/cache/cache.service"
 
-@Injectable()
-export class RedisCache {
-    constructor(@Inject(CACHE_MANAGER) private readonly cacheManager: Cache) { }
-    
+
+
+export const getCachedQuiz = async (
+    redisCache: CacheService,
+    key: string) => {
+    const cachedQuiz = await redisCache.getCache(key)
+    if (cachedQuiz) {
+      return cachedQuiz
+    }
+  }
+
  
-}

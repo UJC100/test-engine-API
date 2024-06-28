@@ -16,7 +16,7 @@ import {redisStore} from 'cache-manager-redis-yet'
         store: redisStore,
         host: configService.get('REDIS_HOST'),
         port: configService.get('REDIS_PORT'),
-        ttl: 60 * 1000
+        ttl: 60 * 5 * 1000
       }),
       inject: [ConfigService],
     }),

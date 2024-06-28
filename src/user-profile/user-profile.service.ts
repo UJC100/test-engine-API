@@ -81,7 +81,7 @@ export class UserProfileService {
     if (user !== userIdFromProfile) {
       throw new ForbiddenException();
     }
-    await this.userProfileRepo.delete(userProfile.id);
+    await this.userProfileRepo.delete(userProfile.id)
 
     return {
       message: 'Profile deleted',
