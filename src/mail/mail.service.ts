@@ -8,12 +8,12 @@ export class MailService {
         private mailerService: MailerService
     ) { }
     
-    async sendMail(email: string, template: string) {
+    async sendMail(email: string, template: string, subject: string ) {
         try {
             await this.mailerService.sendMail({
                 to: email,
                 from: `${process.env.MAILER_EMAIL}`,
-                subject: `Verify Your Email`,
+                subject: subject,
                 html: template
             })
         } catch (error) {

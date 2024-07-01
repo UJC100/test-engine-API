@@ -5,11 +5,12 @@ import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
 import * as cron from 'node-cron';
 import { CreateOtpDto, SendOtpDto, VerifyOtpDto } from './otpDto/otp-dto';
 import { BaseHelper } from 'src/helperFunctions/otpToken';
-import { OtpType } from 'src/enum/otp';
+import { EmailSubjectType, OtpType } from 'src/enum/otp';
 import { VerifyEmailTemplate } from 'src/mail/templates/verify-email';
 import { MailService } from 'src/mail/mail.service';
 import { UserService } from 'src/user/user.service';
 import { TemporaryUserTable, UserSignup } from 'src/entities/signUp.details';
+import { WelcomeEmailTemplate } from 'src/mail/templates/welcome-email';
 
 @Injectable()
 export class OtpService {
@@ -55,10 +56,12 @@ export class OtpService {
         const code = BaseHelper.generateToken();
 
         let template: string;
+        let subject: string;
 
         switch (type) {
             case OtpType.VERIFY_EMAIL:
                 template = VerifyEmailTemplate(code, username)
+                subject = EmailSubjectType.VERIFY_EMAIL
         }
 
         const otp = await this.createOtp({
@@ -68,7 +71,7 @@ export class OtpService {
         })
         if (!otp) throw new InternalServerErrorException(`Unable to generate otp. Please try again later`)
         
-        await this.mailService.sendMail(email, template)
+        await this.mailService.sendMail(email, template, subject)
     }
 
     async deleteOtp(id: string, query: string) {
@@ -91,7 +94,7 @@ export class OtpService {
               } catch (error) {
                 console.error(`Error deleting OTP for ${id}:`, error);
               }
-            }, 60000);
+            }, 300000);
             return timerId;
         } else if (query === 'clear') {
             clearTimeout(timerId)
@@ -104,9 +107,12 @@ export class OtpService {
     async verifyOtp(payload: VerifyOtpDto) {
         const otp = await this.otpRepo.findOne({ where: { code: payload.code } });
         if (!otp) throw new HttpException('Invalid or expired otp', HttpStatus.NOT_FOUND)
-        
+
         const tempUser = await this.tempUserRepo.findOne({ where: { email: otp.email } });
+        const template = WelcomeEmailTemplate(tempUser.username)
+        const subject = EmailSubjectType.WELCOME_EMAIL;
         if (tempUser) {
+            await this.mailService.sendMail(tempUser.email, template, subject )
             await this.tempUserRepo.delete(tempUser.id)
             await this.userService.signup(tempUser)
             return tempUser
