@@ -10,6 +10,7 @@ import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
 import { join } from 'path';
 import { TemporaryUserModule } from './temporary-user/temporary-user.module';
+import { PaginationModule } from './pagination/pagination.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { TemporaryUserModule } from './temporary-user/temporary-user.module';
     MailModule,
     OtpModule,
     TemporaryUserModule,
+    PaginationModule,
   ],
   controllers: [],
   providers: [],

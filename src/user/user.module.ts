@@ -13,6 +13,8 @@ import { GoogleUserController } from './google.user.controller';
 import { CacheService } from 'src/cache/cache.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { OtpModule } from 'src/otp/otp.module';
+import { PaginationModule } from 'src/pagination/pagination.module';
+import { PaginationService } from 'src/pagination/pagination.service';
 // import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({
@@ -25,9 +27,9 @@ import { OtpModule } from 'src/otp/otp.module';
     }),
     TypeOrmModule.forFeature([UserSignup, UserProfile]),
     PassportModule,
-   forwardRef(() => OtpModule)
+    forwardRef(() => OtpModule)
   ],
-  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService],
+  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService, PaginationService],
   controllers: [UserController, GoogleUserController],
   exports: [UserService]
 })

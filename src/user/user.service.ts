@@ -27,6 +27,8 @@ import { CacheService } from 'src/cache/cache.service';
 import { OtpService } from 'src/otp/otp.service';
 import { OtpType } from 'src/enum/otp';
 import { getCachedQuiz } from 'src/helperFunctions/redis';
+import { PaginationService } from 'src/pagination/pagination.service';
+import { PaginationDto } from 'src/pagination/dto/pagination-dto';
 
 @Injectable()
 export class UserService {
@@ -36,6 +38,7 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly redisChache: CacheService,
+    private readonly paginationService: PaginationService
     
   ) {}
 
@@ -220,7 +223,7 @@ export class UserService {
     }
   }
 
-  async getAllUsers(req: Request) {
+  async getAllUsers(req: Request, query: PaginationDto) {
     const id = req.user['id'];
     const redisKeyName = `GetAllUsers:${id}`
     await getCachedQuiz(this.redisChache, redisKeyName);
@@ -232,10 +235,9 @@ export class UserService {
       throw new UnauthorizedException(`Only admins can access this resource`);
     }
 
-    const users = await this.userRepo.find({ relations: ['userProfile'] });
-    users.map((allUsers) => {
-      return allUsers;
-    });
+    // const users = await this.userRepo.find({ relations: ['userProfile'] });
+    const users = await this.paginationService.paginate(this.userRepo, query)
+    
     await this.redisChache.setCache(redisKeyName, users)
 
     return users;

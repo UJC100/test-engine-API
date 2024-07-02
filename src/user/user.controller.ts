@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -22,6 +23,7 @@ import { ResetPasswordDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
 // import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { User } from '../custome-decorators/user.decorator';
+import { PaginationDto } from 'src/pagination/dto/pagination-dto';
 
 @Controller('user')
 export class UserController {
@@ -49,8 +51,8 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('allUsers')
-  async getAllUsers(@Req() req: Request) {
-    return await this.userService.getAllUsers(req);
+  async getAllUsers(@Req() req: Request, @Query() query: PaginationDto) {
+    return await this.userService.getAllUsers(req, query)
   }
 
   @Get('fetchUser/:id')
