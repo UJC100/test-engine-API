@@ -8,10 +8,11 @@ import { PassportModule } from '@nestjs/passport';
 import { UserSignup } from 'src/entities/signUp.details';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CacheService } from 'src/cache/cache.service';
+import { PaginationService } from 'src/pagination/pagination.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([QuizEntity, UserSignup, UserProfile]), PassportModule],
   controllers: [QuizController],
-  providers: [QuizService, CacheService],
+  providers: [QuizService, CacheService, PaginationService],
 })
 export class QuizModule {}

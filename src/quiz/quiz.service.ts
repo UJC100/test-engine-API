@@ -14,6 +14,8 @@ import { UserProfile } from 'src/entities/user.profile.entity';
 import { Repository } from 'typeorm';
 import { CacheService } from 'src/cache/cache.service';
 import { getCachedQuiz } from 'src/helperFunctions/redis';
+import { PaginationService } from 'src/pagination/pagination.service';
+import { PaginationDto } from 'src/pagination/dto/pagination-dto';
 
 @Injectable()
 export class QuizService {
@@ -24,26 +26,26 @@ export class QuizService {
     private readonly userRepo: Repository<UserSignup>,
     @InjectRepository(UserProfile)
     private readonly userProfileRepo: Repository<UserProfile>,
-    private readonly redisCache: CacheService
+    private readonly redisCache: CacheService,
+    private readonly paginationService: PaginationService
   ) {}
 
   async setQuiz(userId: string, payload: QuizDto) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
     });
-    const userProfileId = user.userProfile.id;
-    const userProfile = await this.userProfileRepo.findOne({
-      where: { id: userProfileId },
-    });
+    // const userProfileId = user.userProfile.id;
+    // const userProfile = await this.userProfileRepo.findOne({
+    //   where: { id: userProfileId },
+    // });
 
     const userRole = user.role;
-    if (userRole !== 'tutor') {
-      throw new UnauthorizedException();
-    }
+    // if (userRole !== 'tutor') {
+    //   throw new UnauthorizedException();
+    // }
 
     const setQuiz = this.quizRepo.create({
       ...payload,
-      userProfile: userProfile,
     });
 
     const saveQuiz = await this.quizRepo.save(setQuiz);
@@ -51,16 +53,16 @@ export class QuizService {
     return saveQuiz;
   }
 
-  async getAllQuiz(userId: string) {
+  async getAllQuiz(userId: string, query: PaginationDto) {
     const user = await this.userRepo.findOne({
       where: { id: userId },
     });
     const userCourse = user.userProfile.course.toLowerCase();
-    const redisKeyName = `GetAllQuiz:${userId}`;
+    const redisKeyName = `quizes:page=${query.page}:size=${query.size}:sort=${query.sort}`;
     await getCachedQuiz(this.redisCache, redisKeyName)
 
-    const quizes = await this.quizRepo.find();
-     quizes.map((quizes) => {
+    const quizes = await this.paginationService.paginate(this.quizRepo, query)
+     quizes.data.map((quizes: any) => {
       let quizCourse = quizes.course.toLowerCase();
       if (user.role === 'admin') {
         return quizes;
@@ -68,7 +70,8 @@ export class QuizService {
       if (userCourse === quizCourse) {
         if(!quizes)  throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND); 
         return quizes  
-      }
+       }
+       
      });
     
     await this.redisCache.setCache(redisKeyName, quizes)

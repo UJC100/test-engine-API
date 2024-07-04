@@ -225,7 +225,7 @@ export class UserService {
 
   async getAllUsers(req: Request, query: PaginationDto) {
     const id = req.user['id'];
-    const redisKeyName = `GetAllUsers:${id}`
+    const redisKeyName = `users:page=${query.page}:size=${query.size}:sort=${query.sort}:userId=${id}`
     await getCachedQuiz(this.redisChache, redisKeyName);
     
     const user = await this.userRepo.findOne({ where: { id } });
@@ -290,6 +290,7 @@ export class UserService {
     await this.userRepo.update(thisUser.id, {
       ...rest,
     });
+    await this.redisChache.delete('users')
 
     const updatedUser = await this.userRepo.findOne({
       where: { id: thisUser.id },
