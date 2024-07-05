@@ -3,7 +3,6 @@ import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserSignup } from '../entities/signUp.details';
-import { UserProfile } from '../entities/user.profile.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
@@ -25,7 +24,7 @@ import { PaginationService } from 'src/pagination/pagination.service';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([UserSignup, UserProfile]),
+    TypeOrmModule.forFeature([UserSignup]),
     PassportModule,
     forwardRef(() => OtpModule)
   ],

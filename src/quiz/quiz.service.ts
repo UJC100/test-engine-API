@@ -10,7 +10,6 @@ import { EditQuizDto } from './dto/quiz.dto';
 import { QuizDto } from 'src/quiz/dto/quiz.dto';
 import { QuizEntity } from 'src/entities/quiz.entity';
 import { UserSignup } from 'src/entities/signUp.details';
-import { UserProfile } from 'src/entities/user.profile.entity';
 import { Repository } from 'typeorm';
 import { CacheService } from 'src/cache/cache.service';
 import { getCachedQuiz } from 'src/helperFunctions/redis';
@@ -24,8 +23,6 @@ export class QuizService {
     private readonly quizRepo: Repository<QuizEntity>,
     @InjectRepository(UserSignup)
     private readonly userRepo: Repository<UserSignup>,
-    @InjectRepository(UserProfile)
-    private readonly userProfileRepo: Repository<UserProfile>,
     private readonly redisCache: CacheService,
     private readonly paginationService: PaginationService
   ) {}
@@ -34,10 +31,6 @@ export class QuizService {
     const user = await this.userRepo.findOne({
       where: { id: userId },
     });
-    // const userProfileId = user.userProfile.id;
-    // const userProfile = await this.userProfileRepo.findOne({
-    //   where: { id: userProfileId },
-    // });
 
     const userRole = user.role;
     // if (userRole !== 'tutor') {
@@ -46,6 +39,7 @@ export class QuizService {
 
     const setQuiz = this.quizRepo.create({
       ...payload,
+      user
     });
 
     const saveQuiz = await this.quizRepo.save(setQuiz);
@@ -61,7 +55,8 @@ export class QuizService {
     const redisKeyName = `quizes:page=${query.page}:size=${query.size}:sort=${query.sort}`;
     await getCachedQuiz(this.redisCache, redisKeyName)
 
-    const quizes = await this.paginationService.paginate(this.quizRepo, query)
+    const relations = 'user'
+    const quizes = await this.paginationService.paginate(this.quizRepo, query, relations)
     //  quizes.data.map((quizes: any) => {
     //   let quizCourse = quizes.course.toLowerCase();
     //   if (user.role === 'admin') {
@@ -81,16 +76,15 @@ export class QuizService {
 
   async getWeeklyQuiz(userId: string, week: string) {
     const user = await this.userRepo.findOne({
-      where: { id: userId },
-      relations: ['userProfile'],
+      where: { id: userId }
     });
     console.log(user.email);
-    const course = user.userProfile.course;
-    console.log(course);
+    const course = user.course;
+    // console.log(course);
     if (!course) {
       throw new UnauthorizedException('Please fill in your profile');
     }
-    const userCourse = user.userProfile.course.toLowerCase();
+    const userCourse = course.toLowerCase();
 
     const redisKeyName = `GetWeeklyQuiz:${userId}`;
     await getCachedQuiz(this.redisCache, redisKeyName); 

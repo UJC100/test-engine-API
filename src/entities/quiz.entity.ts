@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
-import { UserProfile } from "./user.profile.entity";
+import { UserSignup } from "./signUp.details";
 
 @Entity()
 export class QuizEntity extends BaseEntity {
@@ -19,8 +19,8 @@ export class QuizEntity extends BaseEntity {
   @Column()
   correctAnswer: string;
 
-  @ManyToOne(() => UserProfile, (userProfile) => userProfile.quiz, {
+  @ManyToOne(() => UserSignup, (user) => user.quizes, {
     onDelete: 'SET NULL',
   })
-  userProfile: UserProfile;
+  user: UserSignup;
 }

@@ -3,7 +3,7 @@ import { PaginationDto } from './dto/pagination-dto';
 
 @Injectable()
 export class PaginationService {
-    async paginate(repository: any, query: PaginationDto, ) {
+    async paginate(repository: any, query: PaginationDto, relations?: string) {
         const { size = 1, page = 1, sort } = query   
         
         const skip = (page - 1) * size
@@ -14,7 +14,8 @@ export class PaginationService {
                 take: size > 20 ? 20 : size,
                 order: {
                     createdAt: sort === 'asc' ? 'ASC' : 'DESC'
-                }
+            },
+                relations: [relations]
             })
         
         const lastPage = Math.ceil(total / size)

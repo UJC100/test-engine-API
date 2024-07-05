@@ -41,6 +41,22 @@ export class UpdateLoginDetailsDto {
   @IsString()
   newPassword: string;
 
+  @IsOptional()
+  @IsString()
+  firstName: string;
+
+  @IsOptional()
+  @IsString()
+  lastName: string;
+
+  @IsOptional()
+  @IsString()
+  otherNames: string;
+
+  @IsOptional()
+  @IsString()
+  course: string;
+
   //   @IsOptional()
   @IsString()
   @IsNotEmpty()

@@ -1,7 +1,7 @@
-import { Column, Entity, JoinColumn, OneToOne } from "typeorm";
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
-import { UserProfile } from "./user.profile.entity";
 import { Role } from "src/enum/role";
+import { QuizEntity } from "./quiz.entity";
 
 @Entity()
 export class UserSignup extends BaseEntity {
@@ -28,14 +28,24 @@ export class UserSignup extends BaseEntity {
   role: Role;
 
   @Column({ nullable: true })
+  firstName: string;
+
+  @Column({ nullable: true })
+  lastName: string;
+
+  @Column({ nullable: true })
+  otherNames: string;
+
+  @Column({ nullable: true })
+  course: string;
+
+  @Column({ nullable: true })
   refreshToken: string;
 
-  @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, {
+  @OneToMany(() => QuizEntity, (quiz) => quiz.user, {
     onDelete: 'SET NULL',
   })
-  @JoinColumn()
-  userProfile?: UserProfile;
-
+  quizes?: QuizEntity[];
 }
 
 
@@ -51,7 +61,10 @@ export class TemporaryUserTable extends BaseEntity {
   @Column({ nullable: true })
   password: string;
 
-  @Column({ nullable: true })
+  @Column({
+    nullable: true,
+    unique: true,
+  })
   username: string;
 
   @Column({ nullable: true, default: false })
@@ -67,9 +80,8 @@ export class TemporaryUserTable extends BaseEntity {
   @Column({ nullable: true })
   refreshToken: string;
 
-  @OneToOne(() => UserProfile, (userProfile) => userProfile.signupDetails, {
+  @OneToMany(() => QuizEntity, (quiz) => quiz.user, {
     onDelete: 'SET NULL',
   })
-  @JoinColumn()
-  userProfile?: UserProfile;
+  quizes?: QuizEntity[];
 }

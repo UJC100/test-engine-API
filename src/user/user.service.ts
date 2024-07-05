@@ -12,7 +12,6 @@ import { UserSignup } from 'src/entities/signUp.details';
 import { Repository, UnorderedBulkOperation } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Role } from 'src/enum/role';
-import { ProfileDto } from 'src/user-profile/dto/profile.dto';
 import { LoginDto } from './dto/user-dto';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
@@ -171,45 +170,22 @@ export class UserService {
       throw new HttpException(`password`, HttpStatus.BAD_REQUEST);
     }
 
-    if (!thisUser.userProfile) {
-      const jwtTokenWithoutRole = await this.getTokensWithoutRoles(
-        thisUser.id,
-        thisUser.email,
-      );
-      const hashedRt = await bcrypt.hash(jwtTokenWithoutRole.refresh_token, 12);
-      await this.userRepo.update(thisUser.id, {
-        refreshToken: hashedRt,
-      });
-
-      res.cookie('jwt', jwtTokenWithoutRole.refresh_token, {
-        httpOnly: true,
-        maxAge: 60 * 60 * 1000,
-      });
-
-      return {
-        message: `login success`,
-        jwtTokenWithoutRole,
-      };
-    } else {
       const jwtToken = await this.getTokens(
         thisUser.role,
         thisUser.id,
         thisUser.email,
       );
 
-      //   const { refreshToken }: UpdateRefreshTokenDto = {
-      //     refreshToken: jwtToken.refresh_token,
-      // };
       const hashedRt = await bcrypt.hash(jwtToken.refresh_token, 12);
       await this.userRepo.update(thisUser.id, {
         refreshToken: hashedRt,
       });
-      console.log(
-        await this.jwtService.verifyAsync(jwtToken.access_token, {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-        }),
-      );
-      console.log(thisUser.refreshToken);
+      // console.log(
+      //   await this.jwtService.verifyAsync(jwtToken.access_token, {
+      //     secret: process.env.ACCESS_TOKEN_SECRET,
+      //   }),
+      // );
+      // console.log(thisUser.refreshToken);
 
       res.cookie('jwt', jwtToken.refresh_token, {
         httpOnly: true,
@@ -220,7 +196,7 @@ export class UserService {
         message: `login success`,
         jwtToken,
       };
-    }
+    
   }
 
   async getAllUsers(req: Request, query: PaginationDto) {
