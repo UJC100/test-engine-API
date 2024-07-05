@@ -57,22 +57,22 @@ export class QuizService {
     const user = await this.userRepo.findOne({
       where: { id: userId },
     });
-    const userCourse = user.userProfile.course.toLowerCase();
+    // const userCourse = user.userProfile.course.toLowerCase();
     const redisKeyName = `quizes:page=${query.page}:size=${query.size}:sort=${query.sort}`;
     await getCachedQuiz(this.redisCache, redisKeyName)
 
     const quizes = await this.paginationService.paginate(this.quizRepo, query)
-     quizes.data.map((quizes: any) => {
-      let quizCourse = quizes.course.toLowerCase();
-      if (user.role === 'admin') {
-        return quizes;
-      }
-      if (userCourse === quizCourse) {
-        if(!quizes)  throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND); 
-        return quizes  
-       }
+    //  quizes.data.map((quizes: any) => {
+    //   let quizCourse = quizes.course.toLowerCase();
+    //   if (user.role === 'admin') {
+    //     return quizes;
+    //   }
+    //   if (userCourse === quizCourse) {
+    //     if(!quizes)  throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND); 
+    //     return quizes  
+    //    }
        
-     });
+    //  });
     
     await this.redisCache.setCache(redisKeyName, quizes)
     
@@ -137,20 +137,21 @@ export class QuizService {
     });
     const userRole = user.role;
 
-    if (userRole !== 'tutor') {
-      throw new UnauthorizedException('Only tutors can make changes');
-    }
+    // if (userRole !== 'tutor') {
+    //   throw new UnauthorizedException('Only tutors can make changes');
+    // }
 
     const quiz = await this.quizRepo.findOne({ where: { id: quizId } });
-    const quizCourse = quiz.course;
-    const tutorsCourse = user.userProfile.course;
+    // const quizCourse = quiz.course;
+    // const tutorsCourse = user.userProfile.course;
 
-    if (tutorsCourse !== quizCourse) {
-      console.log(tutorsCourse + '||' + quizCourse);
-      throw new UnauthorizedException();
-    }
+    // if (tutorsCourse !== quizCourse) {
+    //   console.log(tutorsCourse + '||' + quizCourse);
+    //   throw new UnauthorizedException();
+    // }
 
     await this.quizRepo.update(quizId, payload);
+    // await this.redisCache.delete('quizes')
 
     const editedQuiz = await this.quizRepo.findOne({ where: { id: quizId } });
 
@@ -168,9 +169,9 @@ export class QuizService {
     });
     const userRole = userSignup.role;
 
-    if (userRole !== 'tutor') {
-      throw new ForbiddenException();
-    }
+    // if (userRole !== 'tutor') {
+    //   throw new ForbiddenException();
+    // }
     await this.quizRepo.delete(quiz.id);
 
     return {
