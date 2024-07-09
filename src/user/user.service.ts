@@ -74,72 +74,6 @@ export class UserService {
     };
   }
 
-  async getTokensWithoutRoles(id: string, email: string) {
-    const [at, rt] = await Promise.all([
-      this.jwtService.signAsync(
-        {
-          id,
-          email,
-        },
-        {
-          secret: process.env.ACCESS_TOKEN_SECRET,
-          expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN,
-        },
-      ),
-
-      this.jwtService.signAsync(
-        {
-          id,
-          email,
-        },
-        {
-          secret: process.env.REFRESH_TOKEN_SECRET,
-          expiresIn: process.env.REFRESH_TOKEN_EXPIRESIN,
-        },
-      ),
-    ]);
-
-    return {
-      access_token: at,
-      refresh_token: rt,
-    };
-  }
-
-  async myCustomToken() {
-    const token = () => {
-      const generateToken = () => {
-        const tokenKey =
-          '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-        const tokenlen = 6;
-        let generatedToken = '';
-
-        for (let i = 0; i < tokenlen; i++) {
-          generatedToken +=
-            tokenKey[Math.floor(Math.random() * tokenKey.length)];
-        }
-        return generatedToken;
-      };
-
-      return new Promise((resolve, reject) => {
-        let start = 30;
-        let stop = 0;
-        let timer = setInterval(() => {
-          if (start === stop) {
-            clearInterval(timer);
-            return {
-              message: 'Token expired',
-            };
-          } else {
-            start--;
-          }
-        }, 1000);
-
-        resolve(generateToken());
-      });
-    };
-
-    return token();
-  }
   //THE ABOVE ARE HELPER
   /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
@@ -266,11 +200,10 @@ export class UserService {
     await this.userRepo.update(thisUser.id, {
       ...rest,
     });
-    await this.redisChache.delete('users')
 
     const updatedUser = await this.userRepo.findOne({
       where: { id: thisUser.id },
-      relations: ['userProfile'],
+      relations: []
     });
 
     return updatedUser;

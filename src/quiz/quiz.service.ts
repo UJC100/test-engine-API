@@ -33,9 +33,9 @@ export class QuizService {
     });
 
     const userRole = user.role;
-    // if (userRole !== 'tutor') {
-    //   throw new UnauthorizedException();
-    // }
+    if (userRole !== 'tutor') {
+      throw new UnauthorizedException();
+    }
 
     const setQuiz = this.quizRepo.create({
       ...payload,
@@ -51,27 +51,28 @@ export class QuizService {
     const user = await this.userRepo.findOne({
       where: { id: userId },
     });
-    // const userCourse = user.userProfile.course.toLowerCase();
+   
     const redisKeyName = `quizes:page=${query.page}:size=${query.size}:sort=${query.sort}`;
     await getCachedQuiz(this.redisCache, redisKeyName)
 
     const relations = 'user'
     const quizes = await this.paginationService.paginate(this.quizRepo, query, relations)
-    //  quizes.data.map((quizes: any) => {
-    //   let quizCourse = quizes.course.toLowerCase();
-    //   if (user.role === 'admin') {
-    //     return quizes;
-    //   }
-    //   if (userCourse === quizCourse) {
-    //     if(!quizes)  throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND); 
-    //     return quizes  
-    //    }
+     const userQuizes = quizes.data.filter((quizes: any) => {
+       if (user.role === 'admin') {
+         return quizes;
+        }
+        const quizCourse = quizes.course.toLowerCase();
+        const userCourse = user.course.toLowerCase();
+      if (userCourse === quizCourse) {
+        if (!quizes) throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND); 
+        return quizes  
+       }
        
-    //  });
+     });
     
-    await this.redisCache.setCache(redisKeyName, quizes)
+    await this.redisCache.setCache(redisKeyName, userQuizes)
     
-    return quizes
+    return userQuizes
   }
 
   async getWeeklyQuiz(userId: string, week: string) {
@@ -84,26 +85,25 @@ export class QuizService {
     if (!course) {
       throw new UnauthorizedException('Please fill in your profile');
     }
-    const userCourse = course.toLowerCase();
+    
 
     const redisKeyName = `GetWeeklyQuiz:${userId}`;
     await getCachedQuiz(this.redisCache, redisKeyName); 
 
     const quiz = await this.quizRepo.find({ where: { week } });
 
-    console.log(quiz);
+     if (quiz.length === 0) {
+       throw new HttpException(
+         'No Quiz for this Week Found',
+         HttpStatus.NOT_FOUND,
+       );
+     }
 
-     quiz.filter((quizes) => {
+    const userWeeklyQuiz = quiz.filter((quizes) => {
+      const userCourse = course.toLowerCase();
       const quizCourse = quizes.course.toLowerCase();
 
-      if (!quizes) {
-        throw new HttpException(
-          'No Quiz for this Week Found',
-          HttpStatus.NOT_FOUND,
-        );
-      }
-
-      console.log(quizCourse, userCourse);
+      // console.log(quizCourse, userCourse);
 
       if (userCourse === quizCourse) {
         return quizes;
@@ -112,17 +112,8 @@ export class QuizService {
      
     await this.redisCache.setCache(redisKeyName, quiz)
     
-    return quiz
-    // const returnedQuiz = [];
-    // getQuiz.map((items) => {
-    //   if (items !== null) {
-    //     returnedQuiz.push(items);
-    //   }
-    // });
-    // if (returnedQuiz.length === 0) {
-    //   throw new HttpException('No Quiz Found', HttpStatus.NOT_FOUND);
-    // }
-    // return returnedQuiz;
+    return userWeeklyQuiz;
+   
   }
 
   async editQuiz(quizId: string, payload: EditQuizDto, userId: string) {

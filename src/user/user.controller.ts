@@ -52,7 +52,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('allUsers')
   async getAllUsers(@Req() req: Request, @Query() query: PaginationDto) {
-    return await this.userService.getAllUsers(req, query)
+    return await this.userService.getAllUsers(req, query);
   }
 
   @Get('fetchUser/:id')
@@ -62,9 +62,10 @@ export class UserController {
   }
 
   @Patch('updateLogin')
+  @UseGuards(JwtAuthGuard)
   async updateUserLogin(
     @Body() userPayload: UpdateLoginDetailsDto,
-    @Req() req,
+    @Req() req: Request,
   ) {
     return await this.userService.updateLoginDetails(userPayload, req);
   }
@@ -102,6 +103,6 @@ export class UserController {
 
   @Get('refreshToken')
   async refreshToken(@Req() req: Request) {
-    return await this.userService.refreshToken(req)
+    return await this.userService.refreshToken(req);
   }
 }
