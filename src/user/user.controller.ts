@@ -24,6 +24,7 @@ import { ForgotPasswordDto } from './dto/user-dto';
 // import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { User } from '../custome-decorators/user.decorator';
 import { PaginationDto } from 'src/pagination/dto/pagination-dto';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('user')
 export class UserController {

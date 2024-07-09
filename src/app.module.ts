@@ -10,6 +10,7 @@ import { OtpModule } from './otp/otp.module';
 import { join } from 'path';
 import { TemporaryUserModule } from './temporary-user/temporary-user.module';
 import { PaginationModule } from './pagination/pagination.module';
+import { RateLimiterModule } from './rate-limiter/rate-limiter.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PaginationModule } from './pagination/pagination.module';
     OtpModule,
     TemporaryUserModule,
     PaginationModule,
+    RateLimiterModule,
   ],
   controllers: [],
   providers: [],
