@@ -6,15 +6,17 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EditQuizDto } from './dto/quiz.dto';
+import { Repository } from 'typeorm';
+import { Request } from 'express';
+import { EditQuizDto, quizScoreDto } from './dto/quiz.dto';
 import { QuizDto } from 'src/quiz/dto/quiz.dto';
 import { QuizEntity } from 'src/entities/quiz.entity';
 import { UserSignup } from 'src/entities/signUp.details';
-import { Repository } from 'typeorm';
 import { CacheService } from 'src/cache/cache.service';
 import { getCachedQuiz } from 'src/helperFunctions/redis';
 import { PaginationService } from 'src/pagination/pagination.service';
 import { PaginationDto } from 'src/pagination/dto/pagination-dto';
+import { QuizScore } from 'src/entities/quiz.score';
 
 @Injectable()
 export class QuizService {
@@ -23,6 +25,8 @@ export class QuizService {
     private readonly quizRepo: Repository<QuizEntity>,
     @InjectRepository(UserSignup)
     private readonly userRepo: Repository<UserSignup>,
+    @InjectRepository(QuizScore)
+    private readonly quizScoreRepo: Repository<QuizScore>,
     private readonly redisCache: CacheService,
     private readonly paginationService: PaginationService
   ) {}
@@ -33,7 +37,7 @@ export class QuizService {
     });
 
     const userRole = user.role;
-    if (userRole !== 'tutor') {
+    if (userRole !== 'tutor' && userRole !== 'admin') {
       throw new UnauthorizedException();
     }
 
@@ -72,7 +76,11 @@ export class QuizService {
     
     await this.redisCache.setCache(redisKeyName, userQuizes)
     
-    return userQuizes
+    return {
+      userQuizes,
+      data: quizes.data,
+      meta: quizes.meta
+    }
   }
 
   async getWeeklyQuiz(userId: string, week: string) {
@@ -114,6 +122,25 @@ export class QuizService {
     
     return userWeeklyQuiz;
    
+  }
+
+  async quizScore( payload: quizScoreDto, currentWeek: string, userId: string) {
+    const { week, course, score } = payload;
+
+    const user = await this.userRepo.findOne({ where: { id: userId } })
+    const userCourse = user.course
+
+    const createScore = this.quizScoreRepo.create({
+      week: currentWeek,
+      course: userCourse,
+      score,
+      user
+    })
+
+    const saveScore = await this.quizScoreRepo.save(createScore)
+    return saveScore
+
+    
   }
 
   async editQuiz(quizId: string, payload: EditQuizDto, userId: string) {

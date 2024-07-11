@@ -24,3 +24,4 @@ export class QuizEntity extends BaseEntity {
   })
   user: UserSignup;
 }
+

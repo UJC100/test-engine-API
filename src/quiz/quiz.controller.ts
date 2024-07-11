@@ -7,10 +7,12 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { QuizService } from './quiz.service';
-import { QuizDto } from 'src/quiz/dto/quiz.dto';
+import { QuizDto, quizScoreDto } from 'src/quiz/dto/quiz.dto';
 import { User } from 'src/custome-decorators/user.decorator';
 import { JwtAuthGuard } from 'src/jwt-auth/jwt.guard';
 import { EditQuizDto } from './dto/quiz.dto';
@@ -28,15 +30,25 @@ export class QuizController {
 
   @Get('getAllQuizes')
   @UseGuards(JwtAuthGuard)
-  async getAllQuizes(@User('id') userId: string, @Query() query: PaginationDto) {
+  async getAllQuizes(
+    @User('id') userId: string,
+    @Query() query: PaginationDto,
+  ) {
     return await this.quizService.getAllQuiz(userId, query);
   }
 
   @Get('getQuiz/:week')
   @UseGuards(JwtAuthGuard)
   async getWeeklyQuiz(@User('id') userId: string, @Param('week') week: string) {
-    const weekUrl = week.replace(/\+/g, ' '); // FOR ENTERING INPUTS WITH SPACES. eg "week+1 will become week 1"
+    const weekUrl = week.replace(/\+/g, ' ');// FOR ENTERING INPUTS WITH SPACES. eg "week+1 will become week 1"
     return await this.quizService.getWeeklyQuiz(userId, weekUrl);
+  } 
+
+  @Post('quizScore/:week')
+  async quizScore(
+    @Body() payload: quizScoreDto, @Param('week') week: string, @User('id') userId: string) {
+    const weekUrl = week.replace(/\+/g, ' ');
+    return await this.quizService.quizScore(payload, weekUrl, userId);
   }
 
   @Patch('editQuiz/:id')
