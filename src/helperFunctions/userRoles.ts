@@ -29,7 +29,7 @@ export const UserRoles = async (
       password: hashedPassword,
       email,
       role: Role.tutor,
-    });
+    })
     const saveAdmin = tempUserRepo.save(createTutor);
     return saveAdmin;
   } else {

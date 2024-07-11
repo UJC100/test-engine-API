@@ -42,8 +42,21 @@ export class TemporaryUserService {
       username,
       type: OtpType.VERIFY_EMAIL,
     });
+    await this.deleteUserAfterTimeOut(email)
       return {
         message: `An otp has been sent to ${email} for verification`
     };
+  }
+
+  async deleteUserAfterTimeOut(email: string) {
+    setTimeout(async () => {
+      const user = await this.tempUserRepo.findOne({ where: { email } });
+      try {
+        await this.tempUserRepo.delete(user.id);
+        console.log(`User:${user.id} was deleted due to uncompleted activity`);
+      } catch (error) {
+        console.error(`Error deleting OTP for ${user.id}:`, error);
+      }
+    }, 1800000);  
   }
 }

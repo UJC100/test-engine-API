@@ -45,7 +45,7 @@ export class OtpService {
         await this.deleteOtp(otpRecords.id, 'clear')
         await this.otpRepo.update(otpRecords.id, payload);
         const updatedOtp = await this.otpRepo.findOne({ where: { email: payload.email } });
-        await this.deleteOtp(updatedOtp.id, 'new')
+        await this.deleteOtp(updatedOtp.id, 'set')
         
         return updatedOtp
     }
@@ -122,7 +122,7 @@ export class OtpService {
 
     async resendOtp(id: string) {
         const userInTempDb = await this.tempUserRepo.findOne({ where: { id } });
-        if (!userInTempDb) throw new HttpException('Resource not found', HttpStatus.NOT_FOUND)
+        if (!userInTempDb) throw new HttpException('Session expired.', HttpStatus.UNAUTHORIZED)
         
         await this.sendOtp({
             username: userInTempDb.username,

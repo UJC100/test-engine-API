@@ -40,13 +40,17 @@ export class QuizController {
   @Get('getQuiz/:week')
   @UseGuards(JwtAuthGuard)
   async getWeeklyQuiz(@User('id') userId: string, @Param('week') week: string) {
-    const weekUrl = week.replace(/\+/g, ' ');// FOR ENTERING INPUTS WITH SPACES. eg "week+1 will become week 1"
+    const weekUrl = week.replace(/\+/g, ' '); // FOR ENTERING INPUTS WITH SPACES. eg "week+1 will become week 1"
     return await this.quizService.getWeeklyQuiz(userId, weekUrl);
-  } 
+  }
 
   @Post('quizScore/:week')
+  @UseGuards(JwtAuthGuard)
   async quizScore(
-    @Body() payload: quizScoreDto, @Param('week') week: string, @User('id') userId: string) {
+    @Body() payload: quizScoreDto,
+    @Param('week') week: string,
+    @User('id') userId: string,
+  ) {
     const weekUrl = week.replace(/\+/g, ' ');
     return await this.quizService.quizScore(payload, weekUrl, userId);
   }

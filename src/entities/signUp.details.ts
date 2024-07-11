@@ -15,7 +15,10 @@ export class UserSignup extends BaseEntity {
   @Column({ nullable: true })
   password: string;
 
-  @Column({ nullable: true })
+  @Column({
+    nullable: true,
+    unique: true,
+  })
   username: string;
 
   @Column({ nullable: true, default: false })
@@ -48,8 +51,8 @@ export class UserSignup extends BaseEntity {
   })
   quizes?: QuizEntity[];
 
-  @OneToMany(() => QuizScore, score => score.user)
-  score: QuizScore[]
+  @OneToMany(() => QuizScore, (score) => score.user)
+  score: QuizScore[];
 }
 
 
