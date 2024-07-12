@@ -25,16 +25,10 @@ export class QuizDto {
 
 
 export class quizScoreDto {
-  @IsString()
-  @IsOptional()
-  week: string;
-
-  @IsString()
-  @IsOptional()
-  course: string;
 
   @IsNumber()
   score: number;
+  
 }
 
 

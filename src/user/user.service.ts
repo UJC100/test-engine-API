@@ -28,12 +28,15 @@ import { OtpType } from 'src/enum/otp';
 import { getCachedQuiz } from 'src/helperFunctions/redis';
 import { PaginationService } from 'src/pagination/pagination.service';
 import { PaginationDto } from 'src/pagination/dto/pagination-dto';
+import { QuizScore } from 'src/entities/quiz.score';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(UserSignup)
     private readonly userRepo: Repository<UserSignup>,
+    @InjectRepository(QuizScore)
+    private readonly quizScoreRepo: Repository<QuizScore>,
     private readonly jwtService: JwtService,
     private readonly mailerService: MailerService,
     private readonly redisChache: CacheService,
@@ -146,7 +149,11 @@ export class UserService {
     }
 
     // const users = await this.userRepo.find({ relations: ['userProfile'] });
-    const users = await this.paginationService.paginate(this.userRepo, query)
+    const users = await this.paginationService.paginate(
+      this.userRepo,
+      query,
+      'score',
+    );
     
     await this.redisChache.setCache(redisKeyName, users)
 

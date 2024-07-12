@@ -14,6 +14,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { OtpModule } from 'src/otp/otp.module';
 import { PaginationModule } from 'src/pagination/pagination.module';
 import { PaginationService } from 'src/pagination/pagination.service';
+import { QuizModule } from 'src/quiz/quiz.module';
+import { QuizScore } from 'src/entities/quiz.score';
 // import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({
@@ -24,11 +26,11 @@ import { PaginationService } from 'src/pagination/pagination.service';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([UserSignup]),
+    TypeOrmModule.forFeature([UserSignup, QuizScore]),
     PassportModule,
-    forwardRef(() => OtpModule)
+    forwardRef(() => OtpModule),
   ],
-  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService, PaginationService],
+  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService, PaginationService, ],
   controllers: [UserController, GoogleUserController],
   exports: [UserService]
 })

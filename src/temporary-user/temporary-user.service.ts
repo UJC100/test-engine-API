@@ -49,10 +49,11 @@ export class TemporaryUserService {
   }
 
   async deleteUserAfterTimeOut(email: string) {
+    const user = await this.tempUserRepo.findOne({ where: { email } });
+    if (!user) { console.log(`Activity Success`) }
     setTimeout(async () => {
-      const user = await this.tempUserRepo.findOne({ where: { email } });
       try {
-        await this.tempUserRepo.delete(user.id);
+        await this.tempUserRepo.delete(user.id)
         console.log(`User:${user.id} was deleted due to uncompleted activity`);
       } catch (error) {
         console.error(`Error deleting OTP for ${user.id}:`, error);

@@ -125,10 +125,12 @@ export class QuizService {
   }
 
   async quizScore( payload: quizScoreDto, currentWeek: string, userId: string) {
-    const { week, course, score } = payload;
+    const { score } = payload;
 
     const user = await this.userRepo.findOne({ where: { id: userId } })
     const userCourse = user.course
+
+    
 
     const createScore = this.quizScoreRepo.create({
       week: currentWeek,
