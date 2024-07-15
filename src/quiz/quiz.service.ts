@@ -59,7 +59,7 @@ export class QuizService {
     const redisKeyName = `quizes:page=${query.page}:size=${query.size}:sort=${query.sort}`;
     await getCachedQuiz(this.redisCache, redisKeyName)
 
-    const relations = 'user'
+    const relations = ['user']
     const quizes = await this.paginationService.paginate(this.quizRepo, query, relations)
      const userQuizes = quizes.data.filter((quizes: any) => {
        if (user.role === 'admin') {

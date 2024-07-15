@@ -149,10 +149,11 @@ export class UserService {
     }
 
     // const users = await this.userRepo.find({ relations: ['userProfile'] });
+    const relations =  ['score', 'quizes']
     const users = await this.paginationService.paginate(
       this.userRepo,
       query,
-      'score',
+     relations,
     );
     
     await this.redisChache.setCache(redisKeyName, users)
