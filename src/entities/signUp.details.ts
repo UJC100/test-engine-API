@@ -41,9 +41,6 @@ export class UserSignup extends BaseEntity {
   otherNames: string;
 
   @Column({ nullable: true })
-  age:string
-
-  @Column({ nullable: true })
   course: string;
 
   @Column({ nullable: true })
