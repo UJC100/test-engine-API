@@ -41,6 +41,9 @@ export class UserSignup extends BaseEntity {
   otherNames: string;
 
   @Column({ nullable: true })
+  age:string
+
+  @Column({ nullable: true })
   course: string;
 
   @Column({ nullable: true })
@@ -49,7 +52,7 @@ export class UserSignup extends BaseEntity {
   @OneToMany(() => QuizEntity, (quiz) => quiz.user, {
     onDelete: 'SET NULL',
   })
-  quizes?: QuizEntity[];
+  quizes: QuizEntity[];
 
   @OneToMany(() => QuizScore, (score) => score.user)
   score: QuizScore[];

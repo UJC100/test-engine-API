@@ -1,5 +1,5 @@
 import { BaseEntity } from "src/entities/base.entity";
-import { OtpType } from "src/enum/otp";
+import { OtpType } from "../../enum/otp";
 import { Column, Entity } from "typeorm";
 
 @Entity()

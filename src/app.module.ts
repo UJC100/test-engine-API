@@ -11,6 +11,8 @@ import { join } from 'path';
 import { TemporaryUserModule } from './temporary-user/temporary-user.module';
 import { PaginationModule } from './pagination/pagination.module';
 import { RateLimiterModule } from './rate-limiter/rate-limiter.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { dataSourceOptions } from 'db/data-source';
 
 
 @Module({
