@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from "typeorm";
 import { BaseEntity } from "./base.entity";
-import { Role } from "src/enum/role";
+import { Role } from "../enum/role";
 import { QuizEntity } from "./quiz.entity";
 import { QuizScore } from "./quiz.score";
 

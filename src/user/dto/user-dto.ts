@@ -1,5 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsOptional, IsString, isBoolean } from "class-validator";
-import { Role } from "src/enum/role";
+
 
 export class SignupDto {
   @IsString()

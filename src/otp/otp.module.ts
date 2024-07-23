@@ -3,9 +3,9 @@ import { OtpService } from './otp.service';
 import { OtpController } from './otp.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Otp } from '../entities/otp-entity';
-import { MailModule } from 'src/mail/mail.module';
-import { UserModule } from 'src/user/user.module';
-import { TemporaryUserTable, UserSignup } from 'src/entities/signUp.details';
+import { MailModule } from '../mail/mail.module';
+import { UserModule } from '../user/user.module';
+import { TemporaryUserTable, UserSignup } from '../entities/signUp.details';
 import { TemporaryUserModule } from 'src/temporary-user/temporary-user.module';
 
 @Module({

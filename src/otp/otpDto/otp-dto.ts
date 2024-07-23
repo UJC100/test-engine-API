@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
-import { OtpType } from "src/enum/otp";
+import { OtpType } from "../../enum/otp";
 
 export class CreateOtpDto{
     @IsEnum(OtpType)

@@ -12,13 +12,13 @@ import { Otp } from '../entities/otp-entity';
 import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
 import * as cron from 'node-cron';
 import { CreateOtpDto, SendOtpDto, VerifyOtpDto } from './otpDto/otp-dto';
-import { BaseHelper } from 'src/helperFunctions/otpToken';
-import { EmailSubjectType, OtpType } from 'src/enum/otp';
-import { VerifyEmailTemplate } from 'src/mail/templates/verify-email';
-import { MailService } from 'src/mail/mail.service';
-import { UserService } from 'src/user/user.service';
-import { TemporaryUserTable, UserSignup } from 'src/entities/signUp.details';
-import { WelcomeEmailTemplate } from 'src/mail/templates/welcome-email';
+import { BaseHelper } from '../helperFunctions/otpToken';
+import { EmailSubjectType, OtpType } from '../enum/otp';
+import { VerifyEmailTemplate } from '../mail/templates/verify-email';
+import { MailService } from '../mail/mail.service';
+import { UserService } from '../user/user.service';
+import { TemporaryUserTable, UserSignup } from '../entities/signUp.details';
+import { WelcomeEmailTemplate } from '../mail/templates/welcome-email';
 
 @Injectable()
 export class OtpService {
@@ -105,7 +105,7 @@ export class OtpService {
         } catch (error) {
           console.error(`Error deleting OTP for ${id}:`, error);
         }
-      }, 300000);
+      }, 1000);
       return timerId;
     } else if (query === 'clear') {
       clearTimeout(timerId);
@@ -115,8 +115,7 @@ export class OtpService {
 
   async verifyOtp(payload: VerifyOtpDto) {
     const otp = await this.otpRepo.findOne({ where: { code: payload.code } });
-    if (!otp)
-      throw new HttpException('Invalid or expired otp', HttpStatus.NOT_FOUND);
+    if (!otp) throw new HttpException('Invalid or expired otp', HttpStatus.NOT_FOUND);
 
     const tempUser = await this.tempUserRepo.findOne({
       where: { email: otp.email },

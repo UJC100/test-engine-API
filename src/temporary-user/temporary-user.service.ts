@@ -1,12 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TemporaryUserTable, UserSignup } from 'src/entities/signUp.details';
-import { OtpType } from 'src/enum/otp';
-import { UserRoles } from 'src/helperFunctions/userRoles';
-import { SignupDto } from 'src/user/dto/user-dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt'
-import { OtpService } from 'src/otp/otp.service';
+import { TemporaryUserTable, UserSignup } from '../entities/signUp.details';
+import { OtpType } from '../enum/otp';
+import { UserRoles } from '../helperFunctions/userRoles';
+import { SignupDto } from '../user/dto/user-dto';
+import { OtpService } from '../otp/otp.service';
 
 @Injectable()
 export class TemporaryUserService {
@@ -58,6 +58,6 @@ export class TemporaryUserService {
       } catch (error) {
         console.error(`Error deleting OTP for ${user.id}:`, error);
       }
-    }, 1800000);  
+    }, 1000);  //1800000
   }
 }

@@ -1,21 +1,21 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserSignup } from '../entities/signUp.details';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { PassportModule } from '@nestjs/passport';
 import { JwtSrategy } from '../jwt-auth/jwt.strategy';
-import { GoogleStrategy } from 'src/googleAuth/googleStrategy';
+import { GoogleStrategy } from '../googleAuth/googleStrategy';
 import { GoogleUserController } from './google.user.controller';
-import { CacheService } from 'src/cache/cache.service';
+import { CacheService } from '../cache/cache.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { OtpModule } from 'src/otp/otp.module';
+import { OtpModule } from '../otp/otp.module';
 import { PaginationModule } from 'src/pagination/pagination.module';
-import { PaginationService } from 'src/pagination/pagination.service';
+import { PaginationService } from '../pagination/pagination.service';
 import { QuizModule } from 'src/quiz/quiz.module';
-import { QuizScore } from 'src/entities/quiz.score';
+import { QuizScore } from '../entities/quiz.score';
 // import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({

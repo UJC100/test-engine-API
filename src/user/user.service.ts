@@ -7,28 +7,28 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { SignupDto } from 'src/user/dto/user-dto';
-import { UserSignup } from 'src/entities/signUp.details';
 import { Repository, UnorderedBulkOperation } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+import { MailerService } from '@nestjs-modules/mailer';
+import { Response, Request } from 'express';
+import { SignupDto } from 'src/user/dto/user-dto';
+import { UserSignup } from '../entities/signUp.details';
 import { Role } from 'src/enum/role';
 import { LoginDto } from './dto/user-dto';
-import { JwtService } from '@nestjs/jwt';
-import { Response, Request } from 'express';
 import { UpdateLoginDetailsDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
-import { MailerService } from '@nestjs-modules/mailer';
 import { ResetPasswordDto } from './dto/user-dto';
 import { UpdateRefreshTokenDto } from './dto/user-dto';
 import { UserRoles } from 'src/helperFunctions/userRoles';
 // import { RedisCache } from 'src/helperFunctions/redis';
-import { CacheService } from 'src/cache/cache.service';
+import { CacheService } from '../cache/cache.service';
 import { OtpService } from 'src/otp/otp.service';
 import { OtpType } from 'src/enum/otp';
-import { getCachedQuiz } from 'src/helperFunctions/redis';
-import { PaginationService } from 'src/pagination/pagination.service';
-import { PaginationDto } from 'src/pagination/dto/pagination-dto';
-import { QuizScore } from 'src/entities/quiz.score';
+import { getCachedQuiz } from '../helperFunctions/redis';
+import { PaginationService } from '../pagination/pagination.service';
+import { PaginationDto } from '../pagination/dto/pagination-dto';
+import { QuizScore } from '../entities/quiz.score';
 
 @Injectable()
 export class UserService {
@@ -38,7 +38,7 @@ export class UserService {
     @InjectRepository(QuizScore)
     private readonly quizScoreRepo: Repository<QuizScore>,
     private readonly jwtService: JwtService,
-    private readonly mailerService: MailerService,
+    // private readonly mailerService: MailerService,
     private readonly redisChache: CacheService,
     private readonly paginationService: PaginationService
     
@@ -227,47 +227,47 @@ export class UserService {
     };
   }
 
-  async forgotPassword(details: ForgotPasswordDto) {
-    const { email } = details;
-    const userInfo = await this.userRepo.findOne({
-      where: { email },
-    });
-    if (!userInfo) {
-      throw new HttpException(`Incorrect email`, HttpStatus.BAD_REQUEST);
-    }
-    // console.log(contactInfo.thisUser)
-    const userId = userInfo.id;
+  // async forgotPassword(details: ForgotPasswordDto) {
+  //   const { email } = details;
+  //   const userInfo = await this.userRepo.findOne({
+  //     where: { email },
+  //   });
+  //   if (!userInfo) {
+  //     throw new HttpException(`Incorrect email`, HttpStatus.BAD_REQUEST);
+  //   }
+  //   // console.log(contactInfo.thisUser)
+  //   const userId = userInfo.id;
 
-    const payload = {
-      sub: userId,
-      email: userInfo.email,
-    };
+  //   const payload = {
+  //     sub: userId,
+  //     email: userInfo.email,
+  //   };
 
-    const token = await this.jwtService.signAsync(payload, {
-      secret: process.env.FORGOT_PASSWORD_SECRET,
-      expiresIn: process.env.FORGOT_PASSWORD_EXPIRES_IN,
-    });
+  //   const token = await this.jwtService.signAsync(payload, {
+  //     secret: process.env.FORGOT_PASSWORD_SECRET,
+  //     expiresIn: process.env.FORGOT_PASSWORD_EXPIRES_IN,
+  //   });
 
-    // const myToken = await this.myCustomToken()
-    const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
-    try {
-      await this.mailerService.sendMail({
-        to: `${userInfo.email}`,
-        from: `${process.env.MAILER_USER}`,
-        subject: `Reset Password link`,
-        text: `click the link to reset password`,
-        html: `<h1><b>Click the link to change password</b></h1><br><a href= "${link}">reset your password</a>`,
-      });
-    } catch (error) {
-      throw error;
-    }
+  //   // const myToken = await this.myCustomToken()
+  //   const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
+  //   try {
+  //     await this.mailerService.sendMail({
+  //       to: `${userInfo.email}`,
+  //       from: `${process.env.MAILER_USER}`,
+  //       subject: `Reset Password link`,
+  //       text: `click the link to reset password`,
+  //       html: `<h1><b>Click the link to change password</b></h1><br><a href= "${link}">reset your password</a>`,
+  //     });
+  //   } catch (error) {
+  //     throw error;
+  //   }
 
-    console.log(link);
-    console.log(userInfo.email);
-    return {
-      message: `Link has been sent to your email`,
-    };
-  }
+  //   console.log(link);
+  //   console.log(userInfo.email);
+  //   return {
+  //     message: `Link has been sent to your email`,
+  //   };
+  // }
 
   async resetPassword(
     details: ResetPasswordDto,

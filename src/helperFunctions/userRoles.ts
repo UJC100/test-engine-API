@@ -1,5 +1,5 @@
-import { TemporaryUserTable, UserSignup } from "src/entities/signUp.details";
-import { Role } from "src/enum/role";
+import { TemporaryUserTable, UserSignup } from "../entities/signUp.details";
+import { Role } from "../enum/role";
 import { Repository } from "typeorm";
 
 

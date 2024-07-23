@@ -1,4 +1,4 @@
-import { BaseEntity } from 'src/entities/base.entity';
+import { BaseEntity } from './base.entity';
 import { OtpType } from '../enum/otp';
 import { Column, Entity } from 'typeorm';
 

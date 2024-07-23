@@ -13,10 +13,10 @@ import {
 import { Request } from 'express';
 import { QuizService } from './quiz.service';
 import { QuizDto, quizScoreDto } from 'src/quiz/dto/quiz.dto';
-import { User } from 'src/custome-decorators/user.decorator';
-import { JwtAuthGuard } from 'src/jwt-auth/jwt.guard';
+import { User } from '../custome-decorators/user.decorator';
+import { JwtAuthGuard } from '../jwt-auth/jwt.guard';
 import { EditQuizDto } from './dto/quiz.dto';
-import { PaginationDto } from 'src/pagination/dto/pagination-dto';
+import { PaginationDto } from '../pagination/dto/pagination-dto';
 
 @Controller('quiz')
 export class QuizController {

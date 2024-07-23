@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { TemporaryUserController } from './temporary-user.controller';
 import { TemporaryUserService } from './temporary-user.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { TemporaryUserTable, UserSignup } from 'src/entities/signUp.details';
-import { OtpModule } from 'src/otp/otp.module';
+import { TemporaryUserTable, UserSignup } from '../entities/signUp.details';
+import { OtpModule } from '../otp/otp.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([TemporaryUserTable, UserSignup]), OtpModule],

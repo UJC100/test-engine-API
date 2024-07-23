@@ -23,7 +23,7 @@ import { ResetPasswordDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
 // import { GoogleUserDto } from 'src/dto/google.signup.dto';
 import { User } from '../custome-decorators/user.decorator';
-import { PaginationDto } from 'src/pagination/dto/pagination-dto';
+import { PaginationDto } from '../pagination/dto/pagination-dto';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller('user')
@@ -84,11 +84,11 @@ export class UserController {
     });
   }
 
-  @Post('forgotPassword')
-  @HttpCode(HttpStatus.OK)
-  async forgotPassword(@Body() payload: ForgotPasswordDto) {
-    return await this.userService.forgotPassword(payload);
-  }
+  // @Post('forgotPassword')
+  // @HttpCode(HttpStatus.OK)
+  // async forgotPassword(@Body() payload: ForgotPasswordDto) {
+  //   return await this.userService.forgotPassword(payload);
+  // }
 
   @Post('resetPassword/:userId/:token')
   @HttpCode(HttpStatus.OK)

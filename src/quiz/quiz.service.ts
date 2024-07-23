@@ -9,14 +9,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Request } from 'express';
 import { EditQuizDto, quizScoreDto } from './dto/quiz.dto';
-import { QuizDto } from 'src/quiz/dto/quiz.dto';
-import { QuizEntity } from 'src/entities/quiz.entity';
-import { UserSignup } from 'src/entities/signUp.details';
-import { CacheService } from 'src/cache/cache.service';
-import { getCachedQuiz } from 'src/helperFunctions/redis';
-import { PaginationService } from 'src/pagination/pagination.service';
-import { PaginationDto } from 'src/pagination/dto/pagination-dto';
-import { QuizScore } from 'src/entities/quiz.score';
+import { QuizDto } from '../quiz/dto/quiz.dto';
+import { QuizEntity } from '../entities/quiz.entity';
+import { UserSignup } from '../entities/signUp.details';
+import { CacheService } from '../cache/cache.service';
+import { getCachedQuiz } from '../helperFunctions/redis';
+import { PaginationService } from '../pagination/pagination.service';
+import { PaginationDto } from '../pagination/dto/pagination-dto';
+import { QuizScore } from '../entities/quiz.score';
 
 @Injectable()
 export class QuizService {
