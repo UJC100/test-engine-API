@@ -15,10 +15,11 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { QuizScore } from '../src/entities/quiz.score';
 import { QuizEntity } from '../src/entities/quiz.entity';
 import { Otp } from '../src/entities/otp-entity';
-import { LoginDto, SignupDto } from '../src/user/dto/user-dto';
+import { LoginDto, SignupDto, UpdateUserDetailsDto } from '../src/user/dto/user-dto';
 import { VerifyOtpDto } from '../src/otp/otpDto/otp-dto';
 import { OtpService } from '../src/otp/otp.service';
 import { UserModule } from '../src/user/user.module';
+import { RedisCacheModule } from '../src/cache/cache.module';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication;
@@ -94,14 +95,14 @@ describe('UserController (e2e)', () => {
         TypeOrmModule.forFeature([UserSignup, QuizScore, Otp, TemporaryUserTable]),
         TemporaryUserModule,
         UserModule,
-        MailModule
+        MailModule,
+        RedisCacheModule
+        // AppModule
       ],
       providers: [OtpService]
     })
       .overrideProvider(MailService)
       .useClass(MockMailerService)
-      .overrideProvider(CacheService)
-      .useClass(MockCacheService)
       .compile();
 
     app = moduleFixture.createNestApplication(),
@@ -183,41 +184,7 @@ describe('UserController (e2e)', () => {
 //       );
 //   });
 
-    it('should throw an error if user does not provide signup requirements, POST', async () => {
-          const user: SignupDto = {
-            email: 'testi',
-            password: '1234',
-            username: '@testi_user',
-        };
-        
-         await request(app.getHttpServer())
-            .post('/signup')
-            .send(user)
-            .expect(400)
-        
-    })
-
-
-    // it('should login user with valid cridentials and return access token, POST', async () => {
-
-    //     await request(app.getHttpServer())
-    //         .post('/signup')
-    //         .send(user)
-    //         .expect(201)
-        
-    //     const userOtp = await request(app.getHttpServer())
-    //         .post('/otp/verify')
-    //         .send(otp)
-    //         .expect(200)
-      
-
-    //     const loginTest = await request(app.getHttpServer())
-    //         .post('/user/signin')
-    //         .send(userLogin)
-    //     .expect(200)
-      
-    //   console.log(loginTest.body)
-    // }, 30000)
+   
   
   it('should throw a 400 Bad request when user enters invalid login credentials, POST', async () => {
     await request(app.getHttpServer())
@@ -236,8 +203,15 @@ describe('UserController (e2e)', () => {
       secretKey: 'startHubDevs',
     };
 
-    const SignedUser: LoginDto = {
+    const signedUser: LoginDto = {
       email: 'user@gmail.com',
+      password: '1234'
+    }
+
+    const updateUserDetails: UpdateUserDetailsDto = {
+      firstName: 'User',
+      lastName: 'Test',
+      course: 'web developement',
       password: '1234'
     }
 
@@ -251,16 +225,36 @@ describe('UserController (e2e)', () => {
        .send(otp)
        .expect(200);
     
-    await request(app.getHttpServer())
+   const loginTest =  await request(app.getHttpServer())
       .post('/user/signin')
-      .send(SignedUser)
+      .send(signedUser)
       .expect(200);
     
+     const accessToken =  loginTest.body.jwtToken.access_token
+    
+  
+    const users = await request(app.getHttpServer())
+      .get('/user/allUsers')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200)
+     
+    const userId = users.body.data[0].id
 
-    // await request(app.getHttpServer())
-    //   .get('/user/allUsers')
-    //   .getHeader()
-    //   .expect(200)
+     await request(app.getHttpServer())
+      .get(`/user/fetchUser/${userId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+    
+    const userDetails = await request(app.getHttpServer())
+      .patch('/user/updateUserDetails')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send(updateUserDetails)
+      .expect(200);
+    
+    console.log(userDetails.body)
 
+    
   }, 30000)
+
+
 });

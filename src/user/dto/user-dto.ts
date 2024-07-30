@@ -33,30 +33,30 @@ export class LoginDto {
   password: string;
 }
 
-export class UpdateLoginDetailsDto {
+export class UpdateUserDetailsDto {
   @IsOptional()
   @IsString()
-  email: string;
+  email?: string;
 
   @IsOptional()
   @IsString()
-  newPassword: string;
+  newPassword?: string;
 
   @IsOptional()
   @IsString()
-  firstName: string;
+  firstName?: string;
 
   @IsOptional()
   @IsString()
-  lastName: string;
+  lastName?: string;
 
   @IsOptional()
   @IsString()
-  otherNames: string;
+  otherNames?: string;
 
   @IsOptional()
   @IsString()
-  course: string;
+  course?: string;
 
   //   @IsOptional()
   @IsString()

@@ -16,7 +16,7 @@ import { SignupDto } from 'src/user/dto/user-dto';
 import { UserSignup } from '../entities/signUp.details';
 import { Role } from 'src/enum/role';
 import { LoginDto } from './dto/user-dto';
-import { UpdateLoginDetailsDto } from './dto/user-dto';
+import { UpdateUserDetailsDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
 import { ResetPasswordDto } from './dto/user-dto';
 import { UpdateRefreshTokenDto } from './dto/user-dto';
@@ -178,8 +178,7 @@ export class UserService {
     const redisKeyName = `GetUser:${userId}`;
     await getCachedQuiz(this.redisChache, redisKeyName)
     const thisUser = await this.userRepo.findOne({
-      where: { id },
-      relations: ['userProfile'],
+      where: { id }
     });
 
     await this.redisChache.setCache(redisKeyName, thisUser)
@@ -189,7 +188,7 @@ export class UserService {
     // }
   }
 
-  async updateLoginDetails(userPayload: UpdateLoginDetailsDto, req: Request) {
+  async updateUserDetails(userPayload: UpdateUserDetailsDto, req: Request) {
     const { password, ...rest } = userPayload;
 
     const userId = req.user['id'];

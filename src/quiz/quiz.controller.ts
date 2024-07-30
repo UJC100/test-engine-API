@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { QuizService } from './quiz.service';
-import { QuizDto, quizScoreDto } from 'src/quiz/dto/quiz.dto';
+import { QuizDto, quizScoreDto } from '../quiz/dto/quiz.dto';
 import { User } from '../custome-decorators/user.decorator';
 import { JwtAuthGuard } from '../jwt-auth/jwt.guard';
 import { EditQuizDto } from './dto/quiz.dto';

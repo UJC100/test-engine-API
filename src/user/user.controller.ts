@@ -18,7 +18,7 @@ import { UserService } from './user.service';
 import { SignupDto } from './dto/user-dto';
 import { LoginDto } from './dto/user-dto';
 import { JwtAuthGuard } from '../jwt-auth/jwt.guard';
-import { UpdateLoginDetailsDto } from './dto/user-dto';
+import { UpdateUserDetailsDto } from './dto/user-dto';
 import { ResetPasswordDto } from './dto/user-dto';
 import { ForgotPasswordDto } from './dto/user-dto';
 // import { GoogleUserDto } from 'src/dto/google.signup.dto';
@@ -62,13 +62,13 @@ export class UserController {
     return this.userService.getOneUser(id, req);
   }
 
-  @Patch('updateLogin')
+  @Patch('updateUserDetails')
   @UseGuards(JwtAuthGuard)
-  async updateUserLogin(
-    @Body() userPayload: UpdateLoginDetailsDto,
+  async updateUserUser(
+    @Body() userPayload: UpdateUserDetailsDto,
     @Req() req: Request,
   ) {
-    return await this.userService.updateLoginDetails(userPayload, req);
+    return await this.userService.updateUserDetails(userPayload, req);
   }
 
   @UseGuards(JwtAuthGuard)
