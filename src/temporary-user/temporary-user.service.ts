@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt'
+import * as bcrypt from 'bcrypt';
 import { TemporaryUserTable, UserSignup } from '../entities/signUp.details';
-import { OtpType } from '../enum/otp';
+import { OtpType } from '../enum/email-enum';
 import { UserRoles } from '../helperFunctions/userRoles';
 import { SignupDto } from '../user/dto/user-dto';
 import { OtpService } from '../otp/otp.service';
@@ -21,14 +21,14 @@ export class TemporaryUserService {
   async createTemporaryUser(payload: Partial<SignupDto>) {
     const { password, email, role, secretKey, username } = payload;
 
-    const user = await this.userRepo.findOne({ where: { email } });  // IMPLEMENT THIS IN THE USER SERVICE BEFORE SAVING
+    const user = await this.userRepo.findOne({ where: { email } }); // IMPLEMENT THIS IN THE USER SERVICE BEFORE SAVING
     if (user) {
       throw new HttpException(`User already exist`, HttpStatus.BAD_REQUEST);
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
 
-     await UserRoles(
+    await UserRoles(
       this.tempUserRepo,
       role,
       secretKey,
@@ -42,22 +42,24 @@ export class TemporaryUserService {
       username,
       type: OtpType.VERIFY_EMAIL,
     });
-    await this.deleteUserAfterTimeOut(email)
-      return {
-        message: `An otp has been sent to ${email} for verification`
+    await this.deleteUserAfterTimeOut(email);
+    return {
+      message: `An otp has been sent to ${email} for verification`,
     };
   }
 
   async deleteUserAfterTimeOut(email: string) {
     const user = await this.tempUserRepo.findOne({ where: { email } });
-    if (!user) { console.log(`Activity Success`) }
+    if (!user) {
+      console.log(`Activity Success`);
+    }
     setTimeout(async () => {
       try {
-        await this.tempUserRepo.delete(user.id)
+        await this.tempUserRepo.delete(user.id);
         console.log(`User:${user.id} was deleted due to uncompleted activity`);
       } catch (error) {
         console.error(`Error deleting OTP for ${user.id}:`, error);
       }
-    }, 1000);  //1800000
+    }, 1000); //1800000
   }
 }

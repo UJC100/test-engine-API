@@ -194,7 +194,7 @@ describe('UserController (e2e)', () => {
 
   }, 30000)
 
-  it('should return all the users, GET', async () => {
+  it('should perform all the CRUD operations concerning the user flow, POST GET PATCH DELETE', async () => {
     const user: SignupDto = {
       email: 'user@gmail.com',
       password: '1234',

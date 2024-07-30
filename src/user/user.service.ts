@@ -24,11 +24,13 @@ import { UserRoles } from 'src/helperFunctions/userRoles';
 // import { RedisCache } from 'src/helperFunctions/redis';
 import { CacheService } from '../cache/cache.service';
 import { OtpService } from 'src/otp/otp.service';
-import { OtpType } from 'src/enum/otp';
+import { EmailSubjectType, EmailType } from 'src/enum/email-enum';
 import { getCachedQuiz } from '../helperFunctions/redis';
 import { PaginationService } from '../pagination/pagination.service';
 import { PaginationDto } from '../pagination/dto/pagination-dto';
 import { QuizScore } from '../entities/quiz.score';
+import { MailService } from '../mail/mail.service';
+import { ForgotPassword } from '../mail/templates/forgot-password';
 
 @Injectable()
 export class UserService {
@@ -38,10 +40,9 @@ export class UserService {
     @InjectRepository(QuizScore)
     private readonly quizScoreRepo: Repository<QuizScore>,
     private readonly jwtService: JwtService,
-    // private readonly mailerService: MailerService,
+    private readonly mailService: MailService,
     private readonly redisChache: CacheService,
-    private readonly paginationService: PaginationService
-    
+    private readonly paginationService: PaginationService,
   ) {}
 
   async getTokens(role: string, id: string, email: string) {
@@ -86,9 +87,9 @@ export class UserService {
   }
 
   async signup(payload: any) {
-    const user = this.userRepo.create(payload)
-    await this.userRepo.save(user)
-    return user
+    const user = this.userRepo.create(payload);
+    await this.userRepo.save(user);
+    return user;
   }
 
   async login(userPayload: LoginDto, res: Response) {
@@ -107,40 +108,39 @@ export class UserService {
       throw new HttpException(`password`, HttpStatus.BAD_REQUEST);
     }
 
-      const jwtToken = await this.getTokens(
-        thisUser.role,
-        thisUser.id,
-        thisUser.email,
-      );
+    const jwtToken = await this.getTokens(
+      thisUser.role,
+      thisUser.id,
+      thisUser.email,
+    );
 
-      const hashedRt = await bcrypt.hash(jwtToken.refresh_token, 12);
-      await this.userRepo.update(thisUser.id, {
-        refreshToken: hashedRt,
-      });
-      // console.log(
-      //   await this.jwtService.verifyAsync(jwtToken.access_token, {
-      //     secret: process.env.ACCESS_TOKEN_SECRET,
-      //   }),
-      // );
-      // console.log(thisUser.refreshToken);
+    const hashedRt = await bcrypt.hash(jwtToken.refresh_token, 12);
+    await this.userRepo.update(thisUser.id, {
+      refreshToken: hashedRt,
+    });
+    // console.log(
+    //   await this.jwtService.verifyAsync(jwtToken.access_token, {
+    //     secret: process.env.ACCESS_TOKEN_SECRET,
+    //   }),
+    // );
+    // console.log(thisUser.refreshToken);
 
-      res.cookie('jwt', jwtToken.refresh_token, {
-        httpOnly: true,
-        maxAge: 60 * 60 * 1000,
-      });
+    res.cookie('jwt', jwtToken.refresh_token, {
+      httpOnly: true,
+      maxAge: 60 * 60 * 1000,
+    });
 
-      return {
-        message: `login success`,
-        jwtToken,
-      };
-    
+    return {
+      message: `login success`,
+      jwtToken,
+    };
   }
 
   async getAllUsers(req: Request, query: PaginationDto) {
     const id = req.user['id'];
-    const redisKeyName = `users:page=${query.page}:size=${query.size}:sort=${query.sort}:userId=${id}`
+    const redisKeyName = `users:page=${query.page}:size=${query.size}:sort=${query.sort}:userId=${id}`;
     await getCachedQuiz(this.redisChache, redisKeyName);
-    
+
     const user = await this.userRepo.findOne({ where: { id } });
     // console.log(user);
 
@@ -149,14 +149,14 @@ export class UserService {
     }
 
     // const users = await this.userRepo.find({ relations: ['userProfile'] });
-    const relations =  ['score', 'quizes']
+    const relations = ['score', 'quizes'];
     const users = await this.paginationService.paginate(
       this.userRepo,
       query,
-     relations,
+      relations,
     );
-    
-    await this.redisChache.setCache(redisKeyName, users)
+
+    await this.redisChache.setCache(redisKeyName, users);
 
     return users;
   }
@@ -176,12 +176,12 @@ export class UserService {
     }
 
     const redisKeyName = `GetUser:${userId}`;
-    await getCachedQuiz(this.redisChache, redisKeyName)
+    await getCachedQuiz(this.redisChache, redisKeyName);
     const thisUser = await this.userRepo.findOne({
-      where: { id }
+      where: { id },
     });
 
-    await this.redisChache.setCache(redisKeyName, thisUser)
+    await this.redisChache.setCache(redisKeyName, thisUser);
     return thisUser;
     // } catch {
     //   // throw new UnauthorizedException()
@@ -210,7 +210,7 @@ export class UserService {
 
     const updatedUser = await this.userRepo.findOne({
       where: { id: thisUser.id },
-      relations: []
+      relations: [],
     });
 
     return updatedUser;
@@ -226,47 +226,41 @@ export class UserService {
     };
   }
 
-  // async forgotPassword(details: ForgotPasswordDto) {
-  //   const { email } = details;
-  //   const userInfo = await this.userRepo.findOne({
-  //     where: { email },
-  //   });
-  //   if (!userInfo) {
-  //     throw new HttpException(`Incorrect email`, HttpStatus.BAD_REQUEST);
-  //   }
-  //   // console.log(contactInfo.thisUser)
-  //   const userId = userInfo.id;
+  async forgotPassword(details: ForgotPasswordDto) {
+    const { email } = details;
+    const userInfo = await this.userRepo.findOne({
+      where: { email },
+    });
+    if (!userInfo) {
+      throw new HttpException(`Incorrect email`, HttpStatus.BAD_REQUEST);
+    }
+    // console.log(contactInfo.thisUser)
+    const userId = userInfo.id;
 
-  //   const payload = {
-  //     sub: userId,
-  //     email: userInfo.email,
-  //   };
+    const payload = {
+      sub: userId,
+      email: userInfo.email,
+    };
 
-  //   const token = await this.jwtService.signAsync(payload, {
-  //     secret: process.env.FORGOT_PASSWORD_SECRET,
-  //     expiresIn: process.env.FORGOT_PASSWORD_EXPIRES_IN,
-  //   });
+    const token = await this.jwtService.signAsync(payload, {
+      secret: process.env.FORGOT_PASSWORD_SECRET,
+      expiresIn: process.env.FORGOT_PASSWORD_EXPIRES_IN,
+    });
 
-  //   // const myToken = await this.myCustomToken()
-  //   const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
-  //   try {
-  //     await this.mailerService.sendMail({
-  //       to: `${userInfo.email}`,
-  //       from: `${process.env.MAILER_USER}`,
-  //       subject: `Reset Password link`,
-  //       text: `click the link to reset password`,
-  //       html: `<h1><b>Click the link to change password</b></h1><br><a href= "${link}">reset your password</a>`,
-  //     });
-  //   } catch (error) {
-  //     throw error;
-  //   }
+    // const myToken = await this.myCustomToken()
+    const link = `http://localhost:2021/user/resetPassword/${userId}/${token}`;
+    
+    const template = ForgotPassword(link)
+    const subject = EmailSubjectType.FORGOT_PASSWORD
 
-  //   console.log(link);
-  //   console.log(userInfo.email);
-  //   return {
-  //     message: `Link has been sent to your email`,
-  //   };
-  // }
+    await this.mailService.sendMail(email, template, subject)
+
+    console.log(link);
+    console.log(userInfo.email);
+    return {
+      message: `A link has been sent to your email`,
+    };
+  }
 
   async resetPassword(
     details: ResetPasswordDto,

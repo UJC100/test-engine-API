@@ -1,5 +1,5 @@
 import { BaseEntity } from './base.entity';
-import { OtpType } from '../enum/otp';
+import { OtpType } from '../enum/email-enum';
 import { Column, Entity } from 'typeorm';
 
 @Entity()
@@ -9,7 +9,7 @@ export class Otp extends BaseEntity {
 
   @Column()
   code: number;
-  
+
   @Column({
     type: 'enum',
     enum: OtpType,

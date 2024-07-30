@@ -13,7 +13,7 @@ import { LessThan, LessThanOrEqual, Repository } from 'typeorm';
 import * as cron from 'node-cron';
 import { CreateOtpDto, SendOtpDto, VerifyOtpDto } from './otpDto/otp-dto';
 import { BaseHelper } from '../helperFunctions/otpToken';
-import { EmailSubjectType, OtpType } from '../enum/otp';
+import { EmailSubjectType, EmailType } from '../enum/email-enum';
 import { VerifyEmailTemplate } from '../mail/templates/verify-email';
 import { MailService } from '../mail/mail.service';
 import { UserService } from '../user/user.service';
@@ -71,7 +71,7 @@ export class OtpService {
     let subject: string;
 
     switch (type) {
-      case OtpType.VERIFY_EMAIL:
+      case EmailType.VERIFY_EMAIL:
         template = VerifyEmailTemplate(code, username);
         subject = EmailSubjectType.VERIFY_EMAIL;
     }
@@ -115,7 +115,8 @@ export class OtpService {
 
   async verifyOtp(payload: VerifyOtpDto) {
     const otp = await this.otpRepo.findOne({ where: { code: payload.code } });
-    if (!otp) throw new HttpException('Invalid or expired otp', HttpStatus.NOT_FOUND);
+    if (!otp)
+      throw new HttpException('Invalid or expired otp', HttpStatus.NOT_FOUND);
 
     const tempUser = await this.tempUserRepo.findOne({
       where: { email: otp.email },
@@ -139,7 +140,7 @@ export class OtpService {
     await this.sendOtp({
       username: userInTempDb.username,
       email: userInTempDb.email,
-      type: OtpType.VERIFY_EMAIL,
+      type: EmailType.VERIFY_EMAIL,
     });
 
     return {
