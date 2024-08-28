@@ -16,6 +16,7 @@ import { PaginationModule } from 'src/pagination/pagination.module';
 import { PaginationService } from '../pagination/pagination.service';
 import { QuizModule } from 'src/quiz/quiz.module';
 import { QuizScore } from '../entities/quiz.score';
+import { MailService } from '../mail/mail.service';
 // import { RefreshTokenStrategy } from 'src/jwt-auth/refreshToken';
 
 @Module({
@@ -30,7 +31,7 @@ import { QuizScore } from '../entities/quiz.score';
     PassportModule,
     forwardRef(() => OtpModule),
   ],
-  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService, PaginationService, ],
+  providers: [UserService, JwtSrategy, GoogleStrategy, CacheService, PaginationService, MailService],
   controllers: [UserController, GoogleUserController],
   exports: [UserService]
 })

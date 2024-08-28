@@ -84,11 +84,11 @@ export class UserController {
     });
   }
 
-  // @Post('forgotPassword')
-  // @HttpCode(HttpStatus.OK)
-  // async forgotPassword(@Body() payload: ForgotPasswordDto) {
-  //   return await this.userService.forgotPassword(payload);
-  // }
+  @Post('forgotPassword')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body() payload: ForgotPasswordDto) {
+    return await this.userService.forgotPassword(payload);
+  }
 
   @Post('resetPassword/:userId/:token')
   @HttpCode(HttpStatus.OK)
@@ -102,6 +102,7 @@ export class UserController {
     return await this.userService.resetPassword(payload, userId, token);
   }
 
+  // @UseGuards(JwtAuthGuard)
   @Get('refreshToken')
   async refreshToken(@Req() req: Request) {
     return await this.userService.refreshToken(req);

@@ -1,5 +1,5 @@
 import { BaseEntity } from './base.entity';
-import { OtpType } from '../enum/email-enum';
+import { EmailType } from '../enum/email-enum';
 import { Column, Entity } from 'typeorm';
 
 @Entity()
@@ -12,8 +12,8 @@ export class Otp extends BaseEntity {
 
   @Column({
     type: 'enum',
-    enum: OtpType,
-    default: OtpType.VERIFY_EMAIL,
+    enum: EmailType,
+    default: EmailType.VERIFY_EMAIL,
   })
   type: string;
 }

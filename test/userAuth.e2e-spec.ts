@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from '../src/app.module';
 import { Repository } from 'typeorm';
 import { join } from 'path';
@@ -15,7 +16,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { QuizScore } from '../src/entities/quiz.score';
 import { QuizEntity } from '../src/entities/quiz.entity';
 import { Otp } from '../src/entities/otp-entity';
-import { LoginDto, SignupDto, UpdateUserDetailsDto } from '../src/user/dto/user-dto';
+import { ForgotPasswordDto, LoginDto, ResetPasswordDto, SignupDto, UpdateUserDetailsDto } from '../src/user/dto/user-dto';
 import { VerifyOtpDto } from '../src/otp/otpDto/otp-dto';
 import { OtpService } from '../src/otp/otp.service';
 import { UserModule } from '../src/user/user.module';
@@ -106,7 +107,8 @@ describe('UserController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication(),
-    app.useGlobalPipes(new ValidationPipe())
+      app.useGlobalPipes(new ValidationPipe())
+      app.use(cookieParser())
     await app.init();
 
       userRepository = moduleFixture.get<Repository<UserSignup>>(
@@ -215,6 +217,15 @@ describe('UserController (e2e)', () => {
       password: '1234'
     }
 
+    const forgotPassword: ForgotPasswordDto = {
+      email: 'user@gmail.com'
+    }
+
+    const resetPassword: ResetPasswordDto = {
+      password: '1234',
+      confirmPassword: '1234'
+    }
+
     await request(app.getHttpServer())
       .post('/signup')
       .send(user)
@@ -230,7 +241,8 @@ describe('UserController (e2e)', () => {
       .send(signedUser)
       .expect(200);
     
-     const accessToken =  loginTest.body.jwtToken.access_token
+    const accessToken = loginTest.body.jwtToken.access_token
+    const jwtCookie = loginTest.headers['set-cookie'][0].split(';')[0].split('=')[1]
     
   
     const users = await request(app.getHttpServer())
@@ -245,15 +257,33 @@ describe('UserController (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
     
-    const userDetails = await request(app.getHttpServer())
+     await request(app.getHttpServer())
       .patch('/user/updateUserDetails')
       .set('Authorization', `Bearer ${accessToken}`)
       .send(updateUserDetails)
       .expect(200);
     
-    console.log(userDetails.body)
-
+    const forgotPasswordTest =  await request(app.getHttpServer())
+      .post('/user/forgotPassword')
+      .send(forgotPassword)
+      .expect(200)
     
+    // console.log(forgotPasswordTest.body);
+    const userIdReset = forgotPasswordTest.body.id
+    const resetToken = forgotPasswordTest.body.token
+
+    await request(app.getHttpServer())
+      .post(`/user/resetPassword/${userIdReset}/${resetToken}`)
+      .send(resetPassword)
+      .expect(200);
+    
+
+    const acToken = await request(app.getHttpServer())
+      .get('/user/refreshToken')
+      .set('Cookie', [`jwt=${jwtCookie}`])
+      .expect(200);
+    
+    console.log(acToken.body)
   }, 30000)
 
 

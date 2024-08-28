@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { TemporaryUserTable, UserSignup } from '../entities/signUp.details';
-import { OtpType } from '../enum/email-enum';
+import { EmailType } from '../enum/email-enum';
 import { UserRoles } from '../helperFunctions/userRoles';
 import { SignupDto } from '../user/dto/user-dto';
 import { OtpService } from '../otp/otp.service';
@@ -40,7 +40,7 @@ export class TemporaryUserService {
     await this.otpService.sendOtp({
       email,
       username,
-      type: OtpType.VERIFY_EMAIL,
+      type: EmailType.VERIFY_EMAIL,
     });
     await this.deleteUserAfterTimeOut(email);
     return {

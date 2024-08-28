@@ -24,7 +24,7 @@ import { UserRoles } from 'src/helperFunctions/userRoles';
 // import { RedisCache } from 'src/helperFunctions/redis';
 import { CacheService } from '../cache/cache.service';
 import { OtpService } from 'src/otp/otp.service';
-import { EmailSubjectType, EmailType } from 'src/enum/email-enum';
+import { EmailSubjectType, EmailType } from '../enum/email-enum';
 import { getCachedQuiz } from '../helperFunctions/redis';
 import { PaginationService } from '../pagination/pagination.service';
 import { PaginationDto } from '../pagination/dto/pagination-dto';
@@ -253,12 +253,14 @@ export class UserService {
     const template = ForgotPassword(link)
     const subject = EmailSubjectType.FORGOT_PASSWORD
 
-    await this.mailService.sendMail(email, template, subject)
+    await this.mailService.sendMail(userInfo.email, template, subject)
 
     console.log(link);
     console.log(userInfo.email);
     return {
       message: `A link has been sent to your email`,
+      id: userId,
+      token
     };
   }
 

@@ -20,33 +20,7 @@ import { dataSourceOptions } from 'db/data-source';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    MailerModule.forRoot({
-      transport: {
-        service: process.env.MAILER_SERVICE,
-        host: process.env.MAILER_HOST,
-        port: +process.env.MAILER_PORT,
-        secure: false,
-        tls: {
-          rejectUnauthorized: false,
-        },
-        socketTimeout: 5 * 60 * 1000,
-        connectionTimeout: 5 * 60 * 1000,
-        auth: {
-          user: process.env.MAILER_USER,
-          pass: process.env.MAILER_PASSWORD,
-        },
-      },
-
-      defaults: {
-        from: `${process.env.MAILER_EMAIL}`,
-      },
-      template: {
-        dir: join(__dirname, 'templates'),
-        options: {
-          strict: true,
-        },
-      },
-    }),
+    
     DatabaseModule,
     UserModule,
     QuizModule,

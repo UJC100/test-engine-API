@@ -5,12 +5,12 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
-import { OtpType } from '../../enum/email-enum';
+import { EmailType } from '../../enum/email-enum';
 
 export class CreateOtpDto {
-  @IsEnum(OtpType)
+  @IsEnum(EmailType)
   @IsOptional()
-  type: OtpType;
+  type: EmailType;
 
   @IsEmail()
   email: string;
@@ -20,8 +20,8 @@ export class CreateOtpDto {
 }
 
 export class SendOtpDto {
-  @IsEnum(OtpType)
-  type: OtpType;
+  @IsEnum(EmailType)
+  type: EmailType;
 
   @IsEmail()
   email: string;
